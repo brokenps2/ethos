@@ -10,6 +10,5 @@ void term_put_char(char c);
 void term_put_char_before(char c);
 void term_write(const char* data, size_t size);
 void term_write_string(const char* data);
-void term_check_keystroke();
 void kprint(const char *str);
 int kputs(const char *str);

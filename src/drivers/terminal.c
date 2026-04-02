@@ -2,6 +2,9 @@
 #include "vga.h"
 #include "keyboard.h"
 #include "arch/i386/ports.h"
+#include "stdio.h"
+#include "string.h"
+#include "pit.h"
 #include <stddef.h>
 
 size_t termWidth;
@@ -12,6 +15,10 @@ size_t termColumn;
 size_t cursorRow;
 size_t cursorColumn;
 uint8_t termColor;
+
+
+char line[128];
+int len = 0;
 
 
 void term_enable_cursor(uint8_t start, uint8_t end) {
@@ -53,6 +60,7 @@ void term_create(size_t width, size_t height, uint16_t* address, size_t row, siz
             termBuffer[index] = vga_entry(' ', termColor);
         }
     }
+    printf(">");
 }
 
 size_t strlen(const char* str) {
@@ -61,6 +69,19 @@ size_t strlen(const char* str) {
         len++;
     }
     return len;
+}
+
+void term_clear() {
+    for(int y = 0; y < termHeight; y++) {
+        for(int x = 0; x < termWidth; x++) {
+            int cpos = (y * termWidth) + x;
+            termBuffer[cpos] = ' ';
+        }
+    }
+    termRow = 0;
+    termColumn = 0;
+    term_set_cursor_pos(1, 1);
+    term_enable_cursor(0, 15);
 }
 
 void term_set_color(VGAColor fg, VGAColor bg) {
@@ -142,11 +163,50 @@ int kputs(const char *str) {
     return 0;
 }
 
-void term_check_keystroke() {
-    char key = resolve_last_keystroke();
+uint8_t min_col = 0;
 
-    if (key == 0)
-        return;
+void print_prompt() {
+    printf("> ");
+    min_col = termColumn;
+}
 
-    term_put_char(keymapUS[key]);
+void handle_command(char* cmd) {
+    if(strcmp(cmd, "help") == 0) {
+        printf("help clear ticks\n");
+    } else if(strcmp(cmd, "clear") == 0) {
+        term_clear();
+    } else if(strcmp(cmd, "ticks") == 0) {
+        printf("%d\n", pit_get_ticks());
+    } else {
+        printf("unknown command\n");
+    }
+    print_prompt();
+}
+
+extern int tail, head;
+extern char keybuf[];
+
+void process_key_input() {
+    while (tail != head) {
+        unsigned char scancode = keybuf[tail];
+        tail = (tail + 1) % KEYBUF_SIZE;
+
+        if (!(scancode & 0x80)) {
+            char c = keymapUS[scancode];
+            if (c == '\n') {
+                line[len] = 0;
+                len = 0;
+                term_put_char('\n');
+                handle_command(line);
+	        } else if(c == '\b') {
+                if(len > 0) {
+                    len--;
+                    term_put_char('\b');
+                }
+            } else {
+                line[len++] = c;
+                term_put_char(c);
+            }
+        }
+    }
 }

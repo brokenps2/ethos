@@ -100,6 +100,5 @@ void idt_init() {
 	install_exceptions();
 
 	idt_flush();
-	term_write_string("idt Initialized\n");
 }
 

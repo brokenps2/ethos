@@ -1,6 +1,8 @@
 #include <stdbool.h>
 #pragma once
 
+#define KEYBUF_SIZE 32
+
 static unsigned char keymapUS[128] = {
     0, 27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b'/*backspace*/, 
     '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', 0,
@@ -11,6 +13,5 @@ static unsigned char keymapUS[128] = {
 };
 
 void keyboard_handler();
-char resolve_last_keystroke();
-bool is_key_pressed(char key);
-bool is_key_down(char key);
+bool get_key(char* out);
+void process_key_input();

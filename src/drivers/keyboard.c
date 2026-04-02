@@ -1,36 +1,29 @@
 #include "arch/i386/ports.h"
+#include "drivers/terminal.h"
 #include "keyboard.h"
 #include <stdbool.h>
 
-char currentKey = 0;
+char keybuf[KEYBUF_SIZE];
+int head = 0, tail = 0;
+
 
 void keyboard_handler() {
     unsigned char scancode = inb(0x60);
 
-    if(scancode & 0x80) {
-    } else {
-	currentKey = scancode;
+    int next = (head + 1) % KEYBUF_SIZE;
+    if (next != tail) {
+        keybuf[head] = scancode;
+        head = next;
     }
+
     end_of_int();
 }
 
-bool is_key_pressed(char key) {
-    if(currentKey == key) {
-	currentKey = 0;
-	return true;
-    }
-    return false;
-}
+bool get_key(char* out) {
+    if (tail == head)
+        return false;
 
-bool is_key_down(char key) {
-    if(currentKey == key) {
-	return true;
-    }
-    return false;
-}
-
-char resolve_last_keystroke() {
-    char key = currentKey;
-    currentKey = 0;
-    return key;
+    *out = keybuf[tail];
+    tail = (tail + 1) % KEYBUF_SIZE;
+    return true;
 }

@@ -3,7 +3,7 @@
 #include "idt.h"
 #include "drivers/keyboard.h"
 #include "ports.h"
-#include "drivers/clock.h"
+#include "drivers/pit.h"
 #include "drivers/terminal.h"
 
 void* irqRoutines[16] = {
@@ -79,9 +79,8 @@ void irq_install() {
 	idt_set_entry(45, irq13, 0x8E);
 	idt_set_entry(46, irq14, 0x8E);
 	idt_set_entry(47, irq15, 0x8E);
-	irq_set_handler(0, clock_handler);
+	irq_set_handler(0, pit_handler);
 	irq_set_handler(1, keyboard_handler);
-	term_write_string("IRQs defined\n");
 }
 
 void irq_handler(registers_t* r) {

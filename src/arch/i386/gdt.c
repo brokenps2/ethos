@@ -29,5 +29,4 @@ void gdt_init() {
 
 	extern void gdt_flush(uint32_t gdtPtr);
 	gdt_flush((uint32_t)&gdtp);
-	term_write_string("GDT Intitialized\n");
 }
