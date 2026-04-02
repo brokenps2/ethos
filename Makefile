@@ -3,7 +3,7 @@ rwildcard = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2)) \
 SRC_DIR := src
 OBJ_DIR := obj
 BIN_DIR := bin
-TARGET := etphos.bin
+TARGET := ethos.bin
 C_FILES := $(call rwildcard,$(SRC_DIR)/,*.c)
 ASM_FILES := $(call rwildcard,$(SRC_DIR)/,*.s)
 ASM_OBJ := $(patsubst $(SRC_DIR)/%.s, $(OBJ_DIR)/%.o, $(ASM_FILES))
@@ -14,7 +14,7 @@ LDFLAGS := -ffreestanding -ggdb -O2 -nostdlib
 image: $(BIN_DIR)/$(TARGET)
 	cp $(BIN_DIR)/$(TARGET) isodir/boot/$(TARGET)
 	grub-mkrescue -o $(BIN_DIR)/$(TARGET).iso isodir
-	mv $(BIN_DIR)/$(TARGET).iso $(BIN_DIR)/etphos.iso
+	mv $(BIN_DIR)/$(TARGET).iso $(BIN_DIR)/ethos.iso
 
 $(BIN_DIR)/$(TARGET): $(C_OBJ) $(ASM_OBJ)
 	i686-elf-gcc -Tlinker.ld -o $@ $(LDFLAGS) $^

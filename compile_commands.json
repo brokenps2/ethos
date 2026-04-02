@@ -1,9 +1,9 @@
 [
   {
-    "directory": "/home/eli/etphos",
+    "directory": "/home/eli/ethos",
     "command": "/usr/bin/gcc -Wall -g -O2 -pthread -I./src -I./src/libc/include -c src/$(file).c -o obj/$(file).o",
-    "file": "/home/eli/etphos/src/kernel/*.c",
-    "file": "/home/eli/etphos/src/libc/*.c",
-    "output": "/home/eli/etphos/obj/*.o"
+    "file": "/home/eli/ethos/src/kernel/*.c",
+    "file": "/home/eli/ethos/src/libc/*.c",
+    "output": "/home/eli/ethos/obj/*.o"
   }
 ]
