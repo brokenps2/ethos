@@ -36,8 +36,7 @@
 *.x86_64
 *.hex
 bin/etphos.bin
-bin/etphos.iso
-isodir/boot/etphos.bin
+bin/disk.img
 *.bin
 *.iso
 *.o

@@ -12,9 +12,7 @@ CFLAGS := -std=gnu99 -ggdb -ffreestanding -O2 -Wall -Wextra -I./src -I./src/libc
 LDFLAGS := -ffreestanding -ggdb -O2 -nostdlib
 
 image: $(BIN_DIR)/$(TARGET)
-	cp $(BIN_DIR)/$(TARGET) isodir/boot/$(TARGET)
-	grub-mkrescue -o $(BIN_DIR)/$(TARGET).iso isodir
-	mv $(BIN_DIR)/$(TARGET).iso $(BIN_DIR)/ethos.iso
+	./mkdisk.sh
 
 $(BIN_DIR)/$(TARGET): $(C_OBJ) $(ASM_OBJ)
 	i686-elf-gcc -Tlinker.ld -o $@ $(LDFLAGS) $^

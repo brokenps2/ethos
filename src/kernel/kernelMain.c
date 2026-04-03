@@ -16,7 +16,6 @@ int kernelMain() {
 	asm volatile("sti");
 
 	
-
 	while (1) {
 		process_key_input();
 		asm volatile("hlt");

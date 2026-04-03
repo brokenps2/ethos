@@ -30,7 +30,6 @@ void dump_registers() {
 }
 
 void exception_handler(registers_t* r) {
-
 	term_write_string("\n\n");
 	term_set_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK);
 	term_write_string(exceptionMessages[r->intNo]);
