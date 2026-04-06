@@ -1,5 +1,4 @@
 #include "arch/i386/ports.h"
-#include "drivers/terminal.h"
 #include "keyboard.h"
 #include <stdbool.h>
 

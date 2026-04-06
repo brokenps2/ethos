@@ -8,7 +8,7 @@ C_FILES := $(call rwildcard,$(SRC_DIR)/,*.c)
 ASM_FILES := $(call rwildcard,$(SRC_DIR)/,*.s)
 ASM_OBJ := $(patsubst $(SRC_DIR)/%.s, $(OBJ_DIR)/%.o, $(ASM_FILES))
 C_OBJ := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(C_FILES))
-CFLAGS := -std=gnu99 -ggdb -ffreestanding -O2 -Wall -Wextra -I./src -I./src/libc/include
+CFLAGS := -std=gnu99 -ggdb -ffreestanding -O2 -Wall -Wextra -Wno-unused -I./src -I./src/libc/include
 LDFLAGS := -ffreestanding -ggdb -O2 -nostdlib
 
 image: $(BIN_DIR)/$(TARGET)

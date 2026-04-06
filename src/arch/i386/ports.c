@@ -10,6 +10,13 @@ char inb(uint16_t port) {
 	return rv;
 }
 
+uint16_t inw(uint16_t port) {
+	uint16_t rv;
+	asm volatile("inw %1, %0" : "=a"(rv):"dN"(port));
+	return rv;
+}
+
+
 void ioWait() {
 	outb(0x80, 0);
 }

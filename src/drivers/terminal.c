@@ -16,10 +16,8 @@ size_t cursorRow;
 size_t cursorColumn;
 uint8_t termColor;
 
-
 char line[128];
 int len = 0;
-
 
 void term_enable_cursor(uint8_t start, uint8_t end) {
     outb(0x3D4, 0x0A);
@@ -60,7 +58,8 @@ void term_create(size_t width, size_t height, uint16_t* address, size_t row, siz
             termBuffer[index] = vga_entry(' ', termColor);
         }
     }
-    printf(">");
+    printf("Welcome to ethos\n");
+    printf("> ");
 }
 
 size_t strlen(const char* str) {
@@ -172,13 +171,15 @@ void print_prompt() {
 
 void handle_command(char* cmd) {
     if(strcmp(cmd, "help") == 0) {
-        printf("help clear ticks\n");
+        printf("help clear ticks crash\n");
     } else if(strcmp(cmd, "clear") == 0) {
         term_clear();
     } else if(strcmp(cmd, "ticks") == 0) {
         printf("%d\n", pit_get_ticks());
+    } else if(strcmp(cmd, "crash") == 0) {
+        asm("int $0x01");
     } else {
-        printf("unknown command\n");
+        printf("unknown cmd\n");
     }
     print_prompt();
 }
