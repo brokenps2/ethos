@@ -5,7 +5,9 @@ cd "$(dirname "$0")"
 
 IMG="./bin/disk.img"
 
-sudo umount /mnt 2>/dev/null || true
+MNTPNT="/mnt/ethosdisk"
+
+sudo umount $MNTPNT 2>/dev/null || true
 sudo losetup -D
 
 dd if=/dev/zero of="$IMG" bs=512 count=131072
@@ -17,17 +19,17 @@ PART=$(sudo losetup --find --show -o 1048576 "$IMG")
 
 sudo mkfs.fat -F32 "$PART"
 
-sudo mkdir -p /mnt
-sudo mount "$PART" /mnt
+sudo mkdir -p $MNTPNT
+sudo mount "$PART" $MNTPNT
 
 sudo grub-install \
   --target=i386-pc \
-  --boot-directory=/mnt/boot \
+  --boot-directory=$MNTPNT/boot \
   --modules="normal part_msdos fat multiboot biosdisk" \
   "$LOOP"
 
-sudo cp ./bin/ethos.bin /mnt/boot/
-sudo mkdir -p /mnt/boot/grub
-sudo cp ./bin/grub.cfg /mnt/boot/grub/
+sudo cp ./bin/ethos.bin $MNTPNT/boot/
+sudo mkdir -p $MNTPNT/boot/grub
+sudo cp ./bin/grub.cfg $MNTPNT/boot/grub/
 
 sync

@@ -1,24 +1,25 @@
 #include <stdint.h>
+#include "kernel/fonts.h"
 #include "vga.h"
 #include "keyboard.h"
 #include "arch/i386/ports.h"
+#include "kernel/multiboot.h"
 #include "stdio.h"
 #include "string.h"
 #include "pit.h"
 #include <stddef.h>
 
-size_t termWidth;
-size_t termHeight;
-uint16_t* termBuffer;
+size_t termWidth;      // in characters
+size_t termHeight;     // in characters
 size_t termRow;
 size_t termColumn;
-size_t cursorRow;
-size_t cursorColumn;
-uint8_t termColor;
+uint32_t termFG;
+uint32_t termBG;
 
 char line[128];
 int len = 0;
 
+/*
 void term_enable_cursor(uint8_t start, uint8_t end) {
     outb(0x3D4, 0x0A);
     outb(0x3D5, (inb(0x3D5) & 0xC0) | start);
@@ -26,12 +27,10 @@ void term_enable_cursor(uint8_t start, uint8_t end) {
     outb(0x3D4, 0x0B);
     outb(0x3D5, (inb(0x3D5) & 0xE0) | end);
 }
-
 void term_disable_cursor() {
     outb(0x3D4, 0x0A);
     outb(0x3D5, 0x20);
 }
-
 void term_set_cursor_pos(int row, int column) {
     cursorRow = row;
     cursorColumn = column;
@@ -42,22 +41,25 @@ void term_set_cursor_pos(int row, int column) {
     outb(0x3D4, 0x0E);
     outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
 }
+*/
 
-void term_create(size_t width, size_t height, uint16_t* address, size_t row, size_t column, VGAColor fg, VGAColor bg) {
-    termWidth = width;
-    termHeight = height;
-    termBuffer = address;
-    termRow = row;
-    termColumn = column;
-    cursorRow = row;
-    cursorColumn = column;
-    termColor = vga_entry_color(fg, bg);
-    for(size_t y = 0; y < termHeight; y++) {
-        for(size_t x = 0; x < termWidth; x++) {
-            const size_t index = y * termHeight + x;
-            termBuffer[index] = vga_entry(' ', termColor);
-        }
-    }
+extern uint8_t _binary_src_cava_psf_start[];
+extern uint8_t _binary_src_cava_psf_end[];
+
+extern multiboot_info_t* mbi;
+
+extern PSFFont *font;
+
+void term_create(size_t width, size_t height, uint32_t fg, uint32_t bg) {
+    font = (PSFFont*)&_binary_src_cava_psf_start;
+
+    termWidth  = width  / font->width;   // convert px to char cells
+    termHeight = height / font->height;
+    termFG = fg;
+    termBG = bg;
+    termRow = 0;
+    termColumn = 0;
+    fb_clear(bg);
     printf("Welcome to ethos\n");
     printf("> ");
 }
@@ -71,36 +73,38 @@ size_t strlen(const char* str) {
 }
 
 void term_clear() {
-    for(int y = 0; y < termHeight; y++) {
-        for(int x = 0; x < termWidth; x++) {
-            int cpos = (y * termWidth) + x;
-            termBuffer[cpos] = ' ';
-        }
-    }
+    fb_clear(termBG);   
     termRow = 0;
     termColumn = 0;
-    term_set_cursor_pos(1, 1);
-    term_enable_cursor(0, 15);
 }
 
-void term_set_color(VGAColor fg, VGAColor bg) {
-    termColor = vga_entry_color(fg, bg);
+void term_set_color(uint32_t fg, uint32_t bg) {
+    termFG = fg;
+    termBG = bg;
 }
 
 void term_put_entry_at(char c, uint8_t color, size_t x, size_t y) {
-    const size_t index = y * termWidth + x;
-    termBuffer[index] = vga_entry(c, color);
+    psf_putchar(x, y, c, termFG, termBG);
 }
 
 void term_scroll() {
-    for (size_t y = 1; y < termHeight; y++) {
-        for (size_t x = 0; x < termWidth; x++) {
-            termBuffer[(y - 1) * termWidth + x] = termBuffer[y * termWidth + x];
-        }
-    }
+    uint32_t char_h = font->height;
+    uint32_t char_w = font->width;
+    uint32_t pitch  = mbi->framebuffer_pitch;
+    uint32_t bpp    = mbi->framebuffer_bpp / 8;
 
-    for (size_t x = 0; x < termWidth; x++) {
-        termBuffer[(termHeight - 1) * termWidth + x] = vga_entry(' ', termColor);
+    volatile uint8_t *fb = (volatile uint8_t*)(uintptr_t)mbi->framebuffer_addr;
+
+    size_t row_bytes = pitch * char_h;
+    size_t total = row_bytes * (termHeight - 1);
+    memmove((void*)fb, (void*)(fb + row_bytes), total);
+
+    volatile uint8_t *last_row = fb + row_bytes * (termHeight - 1);
+    for (uint32_t y = 0; y < char_h; y++) {
+        for (uint32_t x = 0; x < termWidth * char_w; x++) {
+            uint32_t *px = (uint32_t*)(last_row + y * pitch + x * bpp);
+            *px = termBG;
+        }
     }
 }
 
@@ -114,8 +118,7 @@ void term_put_char(char c) {
             termColumn--;
         }
 
-        term_put_entry_at(' ', termColor, termColumn, termRow);
-        term_set_cursor_pos(termRow, termColumn);
+        psf_putchar(termColumn * font->width, termRow * font->height, ' ', termFG, termBG);
         return;
     }
 
@@ -123,8 +126,7 @@ void term_put_char(char c) {
         termColumn = 0;
         termRow++;
     } else {
-        term_put_entry_at(c, termColor, termColumn, termRow);
-
+        psf_putchar(termColumn * font->width, termRow * font->height, (unsigned char)c, termFG, termBG);
         if (++termColumn >= termWidth) {
             termColumn = 0;
             termRow++;
@@ -135,8 +137,6 @@ void term_put_char(char c) {
         term_scroll();
         termRow = termHeight - 1;
     }
-
-    term_set_cursor_pos(termRow, termColumn);
 }
 
 void term_write(const char* data, size_t size) {

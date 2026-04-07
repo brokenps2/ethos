@@ -6,9 +6,7 @@
 #include "drivers/terminal.h"
 #include "kernel/multiboot.h"
 #include "kernel/fonts.h"
-#include "kernel/utils.h"
 #include <stdint.h>
-
 
 multiboot_info_t* mbi;
 
@@ -25,12 +23,12 @@ int kernel_main(uint32_t magic, uint32_t mbi_addr) {
 	idt_init();
 	irq_install();
 	
-	//term_create(80, 25, (uint16_t*)0xB8000, 0, 0, VGA_COLOR_LIGHT_GRAY, VGA_COLOR_BLACK);
+	//term_create(1024, 768, 0x00FFFFFF, 0x00000000);
 
 	asm volatile("sti");
 
 	psf_init();
-	psf_puts(10, 10, "test", 0x00FFFFFF, 0x00000000);
+	term_create(mbi->framebuffer_width, mbi->framebuffer_height, 0x00AAAAAA, 0x00000000);
 
 	while (1) {
 		process_key_input();

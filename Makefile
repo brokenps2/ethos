@@ -27,6 +27,6 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.s
 	nasm -felf32 -o $@ $<
 
 $(OBJ_DIR)/font.o:
-	objcopy -O elf32-i386 -B i386 -I binary $(SRC_DIR)/ter-u12n.psf $(OBJ_DIR)/font.o
+	objcopy -O elf32-i386 -B i386 -I binary $(SRC_DIR)/cava.psf $(OBJ_DIR)/font.o
 
 

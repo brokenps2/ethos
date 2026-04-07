@@ -45,5 +45,6 @@ typedef enum VGAColor {
 
 uint8_t vga_entry_color(VGAColor fg, VGAColor bg);
 uint16_t vga_entry(unsigned char uc, uint8_t color);
-uint32_t get_framebuffer_address();
-void put_pixel(int x, int y, uint32_t color);
+uint32_t fb_get_address();
+void fb_put_pixel(int x, int y, uint32_t color);
+void fb_clear(uint32_t color);
