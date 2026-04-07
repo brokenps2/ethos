@@ -8,13 +8,14 @@ C_FILES := $(call rwildcard,$(SRC_DIR)/,*.c)
 ASM_FILES := $(call rwildcard,$(SRC_DIR)/,*.s)
 ASM_OBJ := $(patsubst $(SRC_DIR)/%.s, $(OBJ_DIR)/%.o, $(ASM_FILES))
 C_OBJ := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(C_FILES))
+FONT_OBJ := $(OBJ_DIR)/font.o
 CFLAGS := -std=gnu99 -ggdb -ffreestanding -O2 -Wall -Wextra -Wno-unused -I./src -I./src/libc/include
 LDFLAGS := -ffreestanding -ggdb -O2 -nostdlib
 
 image: $(BIN_DIR)/$(TARGET)
 	./mkdisk.sh
 
-$(BIN_DIR)/$(TARGET): $(C_OBJ) $(ASM_OBJ)
+$(BIN_DIR)/$(TARGET): $(C_OBJ) $(ASM_OBJ) $(FONT_OBJ)
 	i686-elf-gcc -Tlinker.ld -o $@ $(LDFLAGS) $^
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
@@ -24,5 +25,8 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.s
 	@mkdir -p $(dir $@)
 	nasm -felf32 -o $@ $<
+
+$(OBJ_DIR)/font.o:
+	objcopy -O elf32-i386 -B i386 -I binary $(SRC_DIR)/ter-u12n.psf $(OBJ_DIR)/font.o
 
 
