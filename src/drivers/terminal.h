@@ -10,6 +10,7 @@ void term_put_char(char c);
 void term_put_char_before(char c);
 void term_write(const char* data, size_t size);
 void term_write_string(const char* data);
+void handle_command(char* cmd);
 void kprint(const char *str);
 int kputs(const char *str);
 void term_clear();

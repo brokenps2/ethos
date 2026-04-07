@@ -4,12 +4,6 @@
 
 #define PSF1_FONT_MAGIC 0x0436
 
-typedef struct {
-	uint16_t magic;
-	uint8_t fontMode;
-	uint8_t characterSize;
-} PSF1Header;
-
 #define PSF_FONT_MAGIC 0x864ab572
 
 typedef struct {
@@ -47,4 +41,5 @@ uint8_t vga_entry_color(VGAColor fg, VGAColor bg);
 uint16_t vga_entry(unsigned char uc, uint8_t color);
 uint32_t fb_get_address();
 void fb_put_pixel(int x, int y, uint32_t color);
+void fb_draw_rect(int x, int y, int w, int h, uint32_t color);
 void fb_clear(uint32_t color);

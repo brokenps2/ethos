@@ -16,42 +16,42 @@ size_t termColumn;
 uint32_t termFG;
 uint32_t termBG;
 
+bool cursor_visible = false;
+
 char line[128];
 int len = 0;
 
-/*
-void term_enable_cursor(uint8_t start, uint8_t end) {
+
+void textmode_term_enable_cursor(uint8_t start, uint8_t end) {
     outb(0x3D4, 0x0A);
     outb(0x3D5, (inb(0x3D5) & 0xC0) | start);
 
     outb(0x3D4, 0x0B);
     outb(0x3D5, (inb(0x3D5) & 0xE0) | end);
 }
-void term_disable_cursor() {
+void textmode_term_disable_cursor() {
     outb(0x3D4, 0x0A);
     outb(0x3D5, 0x20);
 }
-void term_set_cursor_pos(int row, int column) {
-    cursorRow = row;
-    cursorColumn = column;
-    uint16_t pos = cursorRow * termWidth + cursorColumn;
+void textmode_term_set_cursor_pos(int row, int column) {
+    uint16_t pos = row * termWidth + column;
 
     outb(0x3D4, 0x0F);
     outb(0x3D5, (uint8_t)(pos & 0xFF));
     outb(0x3D4, 0x0E);
     outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
 }
-*/
 
-extern uint8_t _binary_src_cava_psf_start[];
-extern uint8_t _binary_src_cava_psf_end[];
+
+extern uint8_t _binary_src_terminus_psf_start[];
+extern uint8_t _binary_src_terminus_psf_end[];
 
 extern multiboot_info_t* mbi;
 
 extern PSFFont *font;
 
 void term_create(size_t width, size_t height, uint32_t fg, uint32_t bg) {
-    font = (PSFFont*)&_binary_src_cava_psf_start;
+    font = (PSFFont*)&_binary_src_terminus_psf_start;
 
     termWidth  = width  / font->width;   // convert px to char cells
     termHeight = height / font->height;
@@ -60,8 +60,22 @@ void term_create(size_t width, size_t height, uint32_t fg, uint32_t bg) {
     termRow = 0;
     termColumn = 0;
     fb_clear(bg);
-    printf("Welcome to ethos\n");
+    printf("ethos Kernel Console -- build date %s\n\n", __DATE__);
     printf("> ");
+}
+
+void term_draw_cursor() {
+    int x = termColumn * font->width;
+    int y = termRow * font->height + font->height - 2;
+    fb_draw_rect(x, y, font->width, 2, termFG);
+    cursor_visible = true;
+}
+
+void term_erase_cursor() {
+    int x = termColumn * font->width;
+    int y = termRow * font->height + font->height - 2;
+    fb_draw_rect(x, y, font->width, 2, termBG);
+    cursor_visible = false;
 }
 
 size_t strlen(const char* str) {
@@ -109,6 +123,8 @@ void term_scroll() {
 }
 
 void term_put_char(char c) {
+    term_erase_cursor();
+
     if (c == '\b') {
         if (termColumn == 0 && termRow > 0) {
             termRow--;
@@ -137,6 +153,8 @@ void term_put_char(char c) {
         term_scroll();
         termRow = termHeight - 1;
     }
+
+    term_draw_cursor();
 }
 
 void term_write(const char* data, size_t size) {
@@ -182,32 +200,4 @@ void handle_command(char* cmd) {
         printf("unknown cmd\n");
     }
     print_prompt();
-}
-
-extern int tail, head;
-extern char keybuf[];
-
-void process_key_input() {
-    while (tail != head) {
-        unsigned char scancode = keybuf[tail];
-        tail = (tail + 1) % KEYBUF_SIZE;
-
-        if (!(scancode & 0x80)) {
-            char c = keymapUS[scancode];
-            if (c == '\n') {
-                line[len] = 0;
-                len = 0;
-                term_put_char('\n');
-                handle_command(line);
-	        } else if(c == '\b') {
-                if(len > 0) {
-                    len--;
-                    term_put_char('\b');
-                }
-            } else {
-                line[len++] = c;
-                term_put_char(c);
-            }
-        }
-    }
 }

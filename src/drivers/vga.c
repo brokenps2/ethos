@@ -27,7 +27,17 @@ void fb_put_pixel(int x, int y, uint32_t color) {
 void fb_clear(uint32_t color) {
     volatile uint32_t *fb = (volatile uint32_t*)(uintptr_t)mbi->framebuffer_addr;
     uint32_t pixels_per_row = mbi->framebuffer_pitch / (mbi->framebuffer_bpp / 8);
-    for (uint32_t y = 0; y < mbi->framebuffer_height; y++)
-        for (uint32_t x = 0; x < mbi->framebuffer_width; x++)
-            fb[y * pixels_per_row + x] = color;
+    for (uint32_t y = 0; y < mbi->framebuffer_height; y++) {
+	for (uint32_t x = 0; x < mbi->framebuffer_width; x++) {
+	    fb[y * pixels_per_row + x] = color;
+	}
+    }
+}
+
+void fb_draw_rect(int x, int y, int w, int h, uint32_t color) {
+    for (int row = 0; row < h; row++) {
+        for (int col = 0; col < w; col++) {
+	    fb_put_pixel(x + col, y + row, color);
+	}
+    }
 }

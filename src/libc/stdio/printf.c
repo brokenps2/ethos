@@ -43,6 +43,31 @@ static bool print_int(int value) {
     return print(buf, i);
 }
 
+
+static bool print_hex(unsigned int value) {
+    char buf[9];
+    char *hex_chars = "0123456789abcdef";
+    int i = 0;
+
+    if (value == 0) {
+        char c = '0';
+        return print(&c, 1);
+    }
+
+    while (value > 0) {
+        buf[i++] = hex_chars[value % 16];
+        value /= 16;
+    }
+
+    for (int j = 0; j < i / 2; j++) {
+        char tmp = buf[j];
+        buf[j] = buf[i - j - 1];
+        buf[i - j - 1] = tmp;
+    }
+
+    return print(buf, i);
+}
+
 int printf(const char* restrict format, ...) {
     va_list parameters;
     va_start(parameters, format);
@@ -96,6 +121,12 @@ int printf(const char* restrict format, ...) {
             format++;
             int val = va_arg(parameters, int);
             if (!print_int(val))
+                return -1;
+        } else if(*format == 'x') { //doesnt work
+            format++;
+            print("0x", 2);
+            int val = va_arg(parameters, int);
+            if(!print_hex(val))
                 return -1;
         } else {
             format = format_begun_at;

@@ -1,10 +1,9 @@
 #include <stdint.h>
-#include "kernel/exceptions.h"
 #include "idt.h"
 #include "drivers/keyboard.h"
+#include "kernel/kernel.h"
 #include "ports.h"
 #include "drivers/pit.h"
-#include "drivers/terminal.h"
 
 void* irqRoutines[16] = {
 	0, 0, 0, 0,
@@ -30,7 +29,7 @@ extern void irq13();
 extern void irq14();
 extern void irq15();
 
-void irq_set_handler(uint8_t irq, void (*handler)(registers_t* r)) {
+void irq_set_handler(uint8_t irq, void (*handler)(CPUState state)) {
 	irqRoutines[irq] = handler;
 }
 
@@ -83,15 +82,15 @@ void irq_install() {
 	irq_set_handler(1, keyboard_handler);
 }
 
-void irq_handler(registers_t* r) {
-	void (*handler)(registers_t* r);
+void irq_handler(CPUState* state) {
+	void (*handler)(CPUState* state);
 
-	handler = irqRoutines[r->intNo - 32];
+	handler = irqRoutines[state->intNo - 32];
 	if(handler) {
-		handler(r);
+		handler(state);
 	}
 
-	if(r->intNo >= 40) {
+	if(state->intNo >= 40) {
 		outb(0xA0, 0x20);
 	}
 

@@ -1,5 +1,6 @@
 #include "drivers/terminal.h"
-#include "exceptions.h"
+#include "kernel/kernel.h"
+#include "stdio.h"
 
 const char* exceptionMessages[] = {
 	"EX0: Division by 0 Exception",
@@ -24,15 +25,11 @@ const char* exceptionMessages[] = {
 	"EX19-31: Reserved Exception"
 };
 
-registers_t r;
-
-void dump_registers() {
-}
-
-void exception_handler(registers_t* r) {
+void exception_handler(CPUState* state) {
 	term_write_string("\n\n");
-	term_set_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK);
-	term_write_string(exceptionMessages[r->intNo]);
-	term_write_string("\nSystem Halted");
+	term_set_color(0x00AA0000, 0x00000000);
+	printf("%s, Error Code: %d\n", exceptionMessages[state->intNo], state->errCode);
+    printf("EAX: %x  EBX: %x  ECX: %x  EDX: %x\n", state->eax, state->ebx, state->ecx, state->edx);
+    printf("EIP: %x  CS:  %x  EFLAGS: %x\n", state->eip, state->cs, state->eflags);
 	asm volatile("hlt");
 }
