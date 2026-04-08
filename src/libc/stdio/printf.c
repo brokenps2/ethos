@@ -46,7 +46,7 @@ static bool print_int(int value) {
 
 static bool print_hex(unsigned int value) {
     char buf[9];
-    char *hex_chars = "0123456789abcdef";
+    char *hex_chars = "0123456789ABCDEF";
     int i = 0;
 
     if (value == 0) {
@@ -124,7 +124,7 @@ int printf(const char* restrict format, ...) {
                 return -1;
         } else if(*format == 'x') { //doesnt work
             format++;
-            print("0x", 2);
+            //print("0x", 2);
             int val = va_arg(parameters, int);
             if(!print_hex(val))
                 return -1;

@@ -1,9 +1,11 @@
 #include <stdint.h>
 #include "kernel/fonts.h"
 #include "vga.h"
-#include "keyboard.h"
+#include <stdbool.h>
+#include "drivers/ata.h"
 #include "arch/i386/ports.h"
 #include "kernel/multiboot.h"
+#include "drivers/fat32.h"
 #include "stdio.h"
 #include "string.h"
 #include "pit.h"
@@ -60,7 +62,7 @@ void term_create(size_t width, size_t height, uint32_t fg, uint32_t bg) {
     termRow = 0;
     termColumn = 0;
     fb_clear(bg);
-    printf("ethos Kernel Console -- build date %s\n\n", __DATE__);
+    printf("\nethos Kernel Console -- build date %s\n\n", __DATE__);
     printf("> ");
 }
 
@@ -187,6 +189,8 @@ void print_prompt() {
     min_col = termColumn;
 }
 
+uint8_t buf[512];
+
 void handle_command(char* cmd) {
     if(strcmp(cmd, "help") == 0) {
         printf("help clear ticks crash\n");
@@ -196,6 +200,19 @@ void handle_command(char* cmd) {
         printf("%d\n", pit_get_ticks());
     } else if(strcmp(cmd, "crash") == 0) {
         asm("int $0x01");
+    } else if(strcmp(cmd, "sect") == 0) {
+        ata_read_sector(100, buf);
+        for(int i = 0; i < 512; i++) {
+            printf("%x ", buf[i]);
+        }
+        printf("\n");
+    } else if(strcmp(cmd, "readtestfile") == 0) {
+        uint8_t fileBuf[4096];
+	    uint32_t fileSize;
+    	if(fat32_read_file("/test.txt", fileBuf, &fileSize)) {
+    		fileBuf[fileSize] = '\0';
+		    printf("%s\n", (const char*)fileBuf);
+	    }
     } else {
         printf("unknown cmd\n");
     }

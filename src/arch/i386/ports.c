@@ -12,7 +12,7 @@ char inb(uint16_t port) {
 
 uint16_t inw(uint16_t port) {
 	uint16_t rv;
-	asm volatile("inw %1, %0" : "=a"(rv):"dN"(port));
+	asm volatile("inw %1, %0" : "=a"(rv):"Nd"(port));
 	return rv;
 }
 

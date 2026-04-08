@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+cp ./bin/ethos.bin ./disk/
+
 cd "$(dirname "$0")"
 
 IMG="./bin/disk.img"
@@ -12,7 +14,7 @@ sudo losetup -D
 
 dd if=/dev/zero of="$IMG" bs=512 count=131072
 
-printf "2048,,L,*\n" | sudo sfdisk "$IMG"
+printf "2048,,c,*\n" | sudo sfdisk "$IMG"
 
 LOOP=$(sudo losetup --find --show "$IMG")
 PART=$(sudo losetup --find --show -o 1048576 "$IMG")
@@ -28,8 +30,9 @@ sudo grub-install \
   --modules="normal part_msdos fat multiboot biosdisk" \
   "$LOOP"
 
-sudo cp ./bin/ethos.bin $MNTPNT/boot/
+sudo cp ./disk/ethos.bin $MNTPNT/boot/
 sudo mkdir -p $MNTPNT/boot/grub
-sudo cp ./bin/grub.cfg $MNTPNT/boot/grub/
+sudo cp ./disk/grub.cfg $MNTPNT/boot/grub/
+sudo cp -r ./disk/extfiles/* $MNTPNT
 
 sync
