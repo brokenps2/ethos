@@ -1,19 +1,14 @@
 #include "arch/i386/gdt.h"
 #include "arch/i386/idt.h"
 #include "arch/i386/irq.h"
-#include "drivers/fat32.h"
-#include "drivers/keyboard.h"
 #include "drivers/terminal.h"
 #include "kernel/multiboot.h"
 #include "kernel/fonts.h"
-#include "drivers/ata.h"
-#include "arch/i386/ports.h"
+#include "kernel/commandline.h"
 #include <stdint.h>
 #include <stdio.h>
 
 multiboot_info_t* mbi;
-
-
 
 int kernel_main(uint32_t magic, uint32_t mbi_addr) {
 
@@ -31,10 +26,12 @@ int kernel_main(uint32_t magic, uint32_t mbi_addr) {
 
 	psf_init();
 	term_create(mbi->framebuffer_width, mbi->framebuffer_height, 0x00FFFFFF, 0x00090815);
-	fat32_init();
+
+	print_prompt();
+
 
 	while (1) {
-		process_key_input();
+		scan_kernel_cmdline();
 		asm volatile("hlt");
 	}
 	return 0;

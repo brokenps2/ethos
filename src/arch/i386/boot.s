@@ -7,8 +7,8 @@ MAGIC    equ  0x1BADB002        ; 'magic number' lets bootloader find the header
 CHECKSUM equ -(MAGIC + MBFLAGS) ; checksum of above, to prove we are multiboot
                                 ; CHECKSUM + MAGIC + MBFLAGS should be Zero (0)
 VMODE   equ 0
-COLUMNS equ 800
-ROWS    equ 600
+COLUMNS equ 1600
+ROWS    equ 900
 DEPTH   equ 0
 
 ; Declare a multiboot header that marks the program as a kernel. These are magic

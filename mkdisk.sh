@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-cp ./bin/ethos.bin ./disk/
-
 cd "$(dirname "$0")"
 
 IMG="./bin/disk.img"
@@ -30,9 +28,9 @@ sudo grub-install \
   --modules="normal part_msdos fat multiboot biosdisk" \
   "$LOOP"
 
-sudo cp ./disk/ethos.bin $MNTPNT/boot/
+sudo cp ./bin/ethos.bin $MNTPNT/boot/
 sudo mkdir -p $MNTPNT/boot/grub
-sudo cp ./disk/grub.cfg $MNTPNT/boot/grub/
-sudo cp -r ./disk/extfiles/* $MNTPNT
+sudo cp ./bin/grub.cfg $MNTPNT/boot/grub/
+sudo cp -r ./disk/* $MNTPNT
 
 sync

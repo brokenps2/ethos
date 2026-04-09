@@ -1,13 +1,18 @@
 #include "drivers/fat32.h"
 #include "drivers/ata.h"
+#include "drivers/terminal.h"
 #include "string.h"
 #include "stdio.h"
 #include <stdint.h>
+#include <stdbool.h>
 
 static FAT32BPB bpb;
 static uint32_t fatStart;
 static uint32_t dataStart;
 static uint32_t sectorsPerCluster;
+static uint32_t currentDirCluster;
+
+static bool ready = false;
 
 int fat32_init() {
     uint8_t buf[512];
@@ -27,11 +32,9 @@ int fat32_init() {
     memcpy(&bpb, buf, sizeof(FAT32BPB));
 
     fatStart  = bpb_sector + bpb.reservedSectors;
-    dataStart = bpb_sector + bpb.reservedSectors
-              + bpb.fatCount * bpb.fatSize32;
+    dataStart = bpb_sector + bpb.reservedSectors + bpb.fatCount * bpb.fatSize32;
     sectorsPerCluster = bpb.sectorsPerCluster;
 
-    // sanity checks
     if (bpb.sectorsPerCluster == 0) {
         printf("FAT32: bad BPB - sectorsPerCluster is 0\n");
         return 0;
@@ -45,7 +48,10 @@ int fat32_init() {
         return 0;
     }
 
+    currentDirCluster = bpb.rootCluster;
+
     printf("FAT32: mounted\n");
+    ready = true;
     return 1;
 }
 
@@ -112,14 +118,125 @@ static int find_in_dir(uint32_t cluster, const char* fatName, FAT32DirEntry* out
     return 0;
 }
 
+uint32_t originalFG;
+extern uint32_t termFG;
+extern uint32_t termBG;
+void fat32_list_dir() {
+
+    if(!ready) {
+        printf("FAT32: not ready\n");
+        return;
+    }
+
+    uint32_t cluster = currentDirCluster;
+    uint8_t buf[512];
+    
+    printf("Type      Size       Name\n");
+    printf("--------------------------\n");
+
+    while (cluster < 0x0FFFFFF8) {
+        uint32_t lba = cluster_to_lba(cluster);
+        
+        for (uint32_t s = 0; s < sectorsPerCluster; s++) {
+            ata_read_sector(lba + s, buf);
+            FAT32DirEntry *entries = (FAT32DirEntry*)buf;
+            
+            for (int i = 0; i < 16; i++) {
+                if (entries[i].name[0] == 0x00) return;
+                if (entries[i].name[0] == 0xE5) continue;
+                if (entries[i].attributes == 0x0F) continue;
+                if (entries[i].attributes & 0x10) {
+                    printf("DIR       %d ", 0);
+                    originalFG = termFG;
+                    term_set_color(0x004040EE, termBG);
+                } else {
+                    printf("FILE      %d ", entries[i].fileSize);
+                }
+
+
+                for (int j = 0; j < 8; j++) {
+                    if (entries[i].name[j] != ' ') printf("%c", entries[i].name[j]);
+                }
+                if (entries[i].name[8] != ' ') {
+                    printf(".");
+                    for (int j = 8; j < 11; j++) {
+                        if (entries[i].name[j] != ' ') printf("%c", entries[i].name[j]);
+                    }
+                }
+
+                if(entries[i].attributes & 0x10) term_set_color(originalFG, termBG);
+                printf("\n");
+            }
+        }
+        cluster = fat_next_cluster(cluster);
+    }
+}
+
+int fat32_change_dir(const char* path) {
+    if(!ready) {
+        printf("FAT32: not ready\n");
+        return 1;
+    }
+
+    char fatName[11];
+
+    if (strcmp(path, ".") == 0) {
+        memcpy(fatName, ".          ", 11);
+    } else if (strcmp(path, "..") == 0) {
+        memcpy(fatName, "..         ", 11);
+    } else {
+        to_fat_name(path, fatName);
+    }
+
+    FAT32DirEntry entry;
+    if (find_in_dir(currentDirCluster, fatName, &entry)) {
+        if (entry.attributes & 0x10) {
+            currentDirCluster = ((uint32_t)entry.clusterHigh << 16)
+                              | entry.clusterLow;
+            if (currentDirCluster == 0)
+                currentDirCluster = bpb.rootCluster;
+            return 1;
+        } else {
+            printf("FAT32: not a directory: %s\n", path);
+        }
+    } else {
+        printf("FAT32: directory not found: %s\n", path);
+    }
+    return 0;
+}
+
+int fat32_get_file_size(const char* path) {
+    if(!ready) {
+        printf("FAT32: not ready\n");
+        return -1;
+    }
+
+    if (path[0] == '/') path++;
+
+    char fatName[11];
+    to_fat_name(path, fatName);
+
+    FAT32DirEntry entry;
+    if(!find_in_dir(currentDirCluster, fatName, &entry)) {
+        printf("FAT32: file not found\n");
+        return -1;
+    }
+
+    return entry.fileSize;
+}
+
 int fat32_read_file(const char* path, uint8_t* buf, uint32_t* size) {
+    if(!ready) {
+        printf("FAT32: not ready\n");
+        return 0;
+    }
     if(path[0] == '/') path++;
 
     char fatName[11];
     to_fat_name(path, fatName);
 
     FAT32DirEntry entry;
-    if(!find_in_dir(bpb.rootCluster, fatName, &entry)) {
+    if(!find_in_dir(currentDirCluster, fatName, &entry)) {
         printf("FAT32: file not found\n");
         return 0;
     }
