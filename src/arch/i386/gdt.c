@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 #include "gdt.h"
 #include "drivers/terminal.h"
 

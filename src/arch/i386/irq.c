@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 #include "idt.h"
 #include "drivers/keyboard.h"
 #include "kernel/kernel.h"

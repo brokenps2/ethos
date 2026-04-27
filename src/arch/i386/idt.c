@@ -1,5 +1,6 @@
 #include "idt.h"
-#include "drivers/terminal.h"
+#include "arch/i386/irq.h"
+#include "stdio.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -41,8 +42,6 @@ extern void isr31();
 __attribute__((aligned(0x10))) static idtEntry_t idt[IDT_MAX_DESCRIPTORS];
 
 idtPtr idtp;
-
-static bool vectors[IDT_MAX_DESCRIPTORS];
 
 extern void* isrStubTable[];
 
@@ -98,6 +97,8 @@ void idt_init() {
 	idtp.limit = (uint16_t)sizeof(idtEntry_t) * IDT_MAX_DESCRIPTORS - 1;
 
 	install_exceptions();
+
+	irq_install();
 
 	idt_flush();
 }

@@ -50,3 +50,5 @@ int fat32_read_file(const char* path, uint8_t* buffer, uint32_t* size);
 void fat32_list_dir();
 int fat32_change_dir(const char* path);
 int fat32_get_file_size(const char* path);
+int fat32_write_file(const char* path, uint8_t* buf, uint32_t size);
+int fat32_delete_file(const char* path);

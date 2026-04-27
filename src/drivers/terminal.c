@@ -62,7 +62,6 @@ void term_create(size_t width, size_t height, uint32_t fg, uint32_t bg) {
     termRow = 0;
     termColumn = 0;
     fb_clear(bg);
-    printf("\nethos Kernel Console -- build date %s\n\n", __DATE__);
 }
 
 void term_draw_cursor() {
