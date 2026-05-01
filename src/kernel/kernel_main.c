@@ -1,7 +1,5 @@
 #include "arch/i386/gdt.h"
 #include "arch/i386/idt.h"
-#include "arch/i386/irq.h"
-#include "drivers/pit.h"
 #include "drivers/terminal.h"
 #include "kernel/multiboot.h"
 #include "kernel/fonts.h"
@@ -29,7 +27,7 @@ int kernel_main(uint32_t magic, uint32_t* mbi_addr) {
 	
 	asm volatile("sti");
 
-    printf("\nethos kernel console -- build date %s\n\n", __DATE__);
+	printf("\nethos kernel console -- build date %s\n\n", __DATE__);
 	print_prompt();
 
 

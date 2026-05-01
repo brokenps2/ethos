@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdbool.h>
 #pragma once
 
 typedef struct {
@@ -45,10 +46,31 @@ typedef struct {
     uint32_t fileSize;
 } __attribute__((packed)) FAT32DirEntry;
 
-int fat32_init();
-int fat32_read_file(const char* path, uint8_t* buffer, uint32_t* size);
-void fat32_list_dir();
-int fat32_change_dir(const char* path);
-int fat32_get_file_size(const char* path);
-int fat32_write_file(const char* path, uint8_t* buf, uint32_t size);
-int fat32_delete_file(const char* path);
+typedef struct {
+    uint32_t cluster;
+    uint32_t sector;
+    uint32_t index;
+} DirIterator;
+
+typedef struct {
+    uint32_t firstCluster;
+    uint32_t size;
+    uint32_t position;
+} FAT32File;
+
+typedef struct {
+    FAT32BPB bpb;
+    uint32_t fatStart;
+    uint32_t dataStart;
+    uint32_t sectorsPerCluster;
+    uint32_t currentDirCluster;
+    bool ready;
+} FAT32;
+
+int fat32_init(FAT32* fs);
+int fat32_open(FAT32* fs, FAT32File* file, const char* path);
+int fat32_read(FAT32* fs, FAT32File* file, uint8_t* buf, uint32_t size);
+void fat32_list_dir(FAT32* fs);
+int fat32_change_dir(FAT32* fs, const char* path);
+int fat32_write_file(FAT32* fs, const char* path, uint8_t* buf, uint32_t size);
+int fat32_delete_file(FAT32* fs, const char* path);

@@ -21,6 +21,8 @@ extern int head, tail;
 extern char line[128];
 extern int len;
 
+FAT32 fs;
+
 void print_prompt() {
     printf("> ");
     min_col = termColumn;
@@ -33,7 +35,7 @@ void do_cd(int argc, char** argv) {
         printf("usage: cd <directory>\n");
         return;
     }
-    fat32_change_dir(argv[1]);
+    fat32_change_dir(&fs, argv[1]);
 }
 
 void do_cat(int argc, char** argv) {
@@ -41,18 +43,17 @@ void do_cat(int argc, char** argv) {
         printf("usage: cat <filename>\n");
         return;
     }
-    int size;
-    size = fat32_get_file_size(argv[1]);
-    if(size == -1) {
-        return;
-    }
+
+    FAT32File file;
+    fat32_open(&fs, &file, argv[1]);
+
     uint8_t* buffer;
-    buffer = (uint8_t*)kmalloc(size);
-    if(fat32_read_file(argv[1], buffer, (uint32_t*)&size)) {
-        buffer[size] = '\0';
-        printf("%s\n", (const char*)buffer);
+    buffer = (uint8_t*)kmalloc(file.size);
+    if(fat32_read(&fs, &file, buffer, file.size)) {
+        buffer[file.size] = '\0';
+        printf("%s", (const char*)buffer);
     }
-    
+    printf("\n");
 }
 
 void do_write(int argc, char** argv) {
@@ -60,7 +61,7 @@ void do_write(int argc, char** argv) {
         printf("usage: write <data> <filename>\n");
         return;
     }
-    fat32_write_file(argv[2], (uint8_t*)argv[1], strlen(argv[1]));
+    fat32_write_file(&fs, argv[2], (uint8_t*)argv[1], strlen(argv[1]));
 }
 
 void do_rm(int argc, char** argv) {
@@ -68,7 +69,7 @@ void do_rm(int argc, char** argv) {
         printf("usage: rm <filename>\n");
         return;
     }
-    fat32_delete_file(argv[1]);
+    fat32_delete_file(&fs, argv[1]);
 }
 
 void do_run(int argc, char** argv) {
@@ -94,8 +95,12 @@ void do_reboot() {
 
 void do_diskinit(int argc, char** argv) {
     if(ata_detect() != 0) {
-        fat32_init();
+        fat32_init(&fs);
     }
+}
+
+void do_ls(int argc, char** argv) {
+    fat32_list_dir(&fs);
 }
 
 void do_crash(int argc, char** argv) {
@@ -117,10 +122,10 @@ Command cmdTable[] = {
     {"cd", "change dir", do_cd},
     {"write", "write data to a file", do_write},
     {"rm", "delete file", do_rm},
-    {"ls", "list current dir", fat32_list_dir},
-    {"dinit", "init ata & fat32", do_diskinit},
+    {"ls", "list current dir", do_ls},
+    {"diskinit", "init ata & fat32", do_diskinit},
     {"crash", "throw cpu debug exception", do_crash},
-    {"pci-scan", "scan pci devices", do_pciscan},
+    {"pciscan", "scan pci devices", do_pciscan},
     {"about", "about ethos", do_about},
     {"reboot", "reboot", do_reboot},
 

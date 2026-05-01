@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include "drivers/vga.h"
 #include "string.h"
-#include "kernel/utils.h"
+#include "kernel/kernel.h"
 
 extern uint8_t _binary_src_terminus_psf_start[];
 extern uint8_t _binary_src_terminus_psf_end[];
