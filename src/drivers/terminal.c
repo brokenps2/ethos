@@ -1,7 +1,5 @@
 #include "drivers/terminal.h"
 #include <stdint.h>
-#include "drivers/ata.h"
-#include "drivers/fat32.h"
 #include "kernel/fonts.h"
 #include "vga.h"
 #include <stdbool.h>

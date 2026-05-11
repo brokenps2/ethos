@@ -6,7 +6,7 @@
 #include "drivers/ata.h"
 #include "kernel/kernel.h"
 #include "drivers/terminal.h"
-#include "drivers/fat32.h"
+#include "drivers/fat32/fat32.h"
 #include "drivers/keyboard.h"
 #include "arch/i386/ports.h"
 
@@ -100,7 +100,7 @@ void do_diskinit(int argc, char** argv) {
 }
 
 void do_ls(int argc, char** argv) {
-    fat32_list_dir(&fs);
+    fat32_list_current_dir_cluster(&fs);
 }
 
 void do_crash(int argc, char** argv) {

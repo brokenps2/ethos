@@ -10,7 +10,7 @@ void ata_read_sector(uint32_t lba, uint8_t* buffer) {
     int timeout = 100000;
     while ((inb(0x1F7) & 0x80) && --timeout);
     if (!timeout) { 
-        printf("ATA: BSY timeout\n"); 
+        printf("ATA: timed out\n"); 
         return; 
     }
 
@@ -34,7 +34,7 @@ void ata_write_sector(uint32_t lba, uint8_t* buf) {
     int timeout = 100000;
     while((inb(ATA_PRIMARY_STATUS) & 0x80) && --timeout);
     if(!timeout) {
-        printf("ATA: BSY timeout\n");
+        printf("ATA: timed out\n");
         return;
     }
 
