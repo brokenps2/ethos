@@ -1,6 +1,8 @@
 #include "drivers/terminal.h"
+#include "drivers/vga.h"
 #include "kernel/kernel.h"
 #include "stdio.h"
+#include <stdbool.h>
 
 const char* exceptionMessages[] = {
     "EX0: Division by 0 Exception",
@@ -25,9 +27,15 @@ const char* exceptionMessages[] = {
     "EX19-31: Reserved Exception"
 };
 
+extern bool supportsVBEFramebuffer;
+
 void exception_handler(CPUState* state) {
     term_write_string("\n\n");
-    term_set_color(0x00EE0000, 0x00000000);
+    if(supportsVBEFramebuffer) {
+        term_set_color(0x00EE0000, 0x00000000);
+    } else {
+        term_set_color(VGA_COLOR_RED, VGA_COLOR_BLACK);
+    }
     printf("%s, Error Code: %d\n", exceptionMessages[state->intNo], state->errCode);
     printf("EAX: %x  EBX: %x  ECX: %x  EDX: %x\n", state->eax, state->ebx, state->ecx, state->edx);
     printf("EIP: %x  CS:  %x  EFLAGS: %x\n", state->eip, state->cs, state->eflags);

@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include "arch/i386/ports.h"
 #include "kernel/multiboot.h"
-#include "stdio.h"
 #include "string.h"
 #include <stddef.h>
 
@@ -16,10 +15,9 @@ size_t termColumn;
 uint32_t termFG;
 uint32_t termBG;
 
-bool cursor_visible = false;
+uint16_t* vgaBuffer = (uint16_t*)0xB8000;
 
-char line[128];
-int len = 0;
+bool cursor_visible = false;
 
 
 void textmode_term_enable_cursor(uint8_t start, uint8_t end) {
@@ -42,6 +40,35 @@ void textmode_term_set_cursor_pos(int row, int column) {
     outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
 }
 
+void textmode_term_clear() {
+    for(int y = 0; y < termHeight; y++) {
+        for(int x = 0; x < termWidth; x++) {
+            int cpos = (y * termWidth) + x;
+            vgaBuffer[cpos] = ' ';
+        }
+    }
+    termRow = 0;
+    termColumn = 0;
+    textmode_term_set_cursor_pos(1, 1);
+    textmode_term_enable_cursor(0, 15);
+}
+
+void textmode_term_scroll() {
+    for (size_t y = 1; y < termHeight; y++) {
+        for (size_t x = 0; x < termWidth; x++) {
+            vgaBuffer[(y - 1) * termWidth + x] = vgaBuffer[y * termWidth + x];
+        }
+    }
+
+    for (size_t x = 0; x < termWidth; x++) {
+        vgaBuffer[(termHeight - 1) * termWidth + x] = vga_entry(' ', termFG | termBG << 4);
+    }
+}
+
+void textmode_term_put_entry_at(char c, uint8_t color, size_t x, size_t y) {
+    const size_t index = y * termWidth + x;
+    vgaBuffer[index] = vga_entry(c, color);
+}
 
 extern uint8_t _binary_src_terminus_psf_start[];
 extern uint8_t _binary_src_terminus_psf_end[];
@@ -50,16 +77,29 @@ extern multiboot_info_t* mbi;
 
 extern PSFFont *font;
 
-void term_create(size_t width, size_t height, uint32_t fg, uint32_t bg) {
-    font = (PSFFont*)&_binary_src_terminus_psf_start;
+extern bool supportsVBEFramebuffer;
 
-    termWidth  = width  / font->width;   // convert px to char cells
-    termHeight = height / font->height;
-    termFG = fg;
-    termBG = bg;
-    termRow = 0;
-    termColumn = 0;
-    fb_clear(bg);
+void term_create(size_t width, size_t height, uint32_t fg, uint32_t bg) {
+    
+    if(supportsVBEFramebuffer) {
+        font = (PSFFont*)&_binary_src_terminus_psf_start;
+        termWidth  = width  / font->width;   // convert px to char cells
+        termHeight = height / font->height;
+        termFG = fg;
+        termBG = bg;
+        termRow = 0;
+        termColumn = 0;
+        fb_clear(bg);
+    } else {
+        termWidth  = width;
+        termHeight = height;
+        termFG = fg;
+        termBG = bg;
+        termRow = 0;
+        termColumn = 0;
+        textmode_term_clear();
+        textmode_term_enable_cursor(0, 15);
+    }
 }
 
 void term_draw_cursor() {
@@ -121,7 +161,7 @@ void term_scroll() {
 }
 
 void term_put_char(char c) {
-    term_erase_cursor();
+    if(supportsVBEFramebuffer) term_erase_cursor();
 
     if (c == '\b') {
         if (termColumn == 0 && termRow > 0) {
@@ -132,15 +172,27 @@ void term_put_char(char c) {
             termColumn--;
         }
 
-        psf_putchar(termColumn * font->width, termRow * font->height, ' ', termFG, termBG);
+        if(supportsVBEFramebuffer) {
+            psf_putchar(termColumn * font->width, termRow * font->height, ' ', termFG, termBG);
+        } else {
+            textmode_term_put_entry_at(' ', termFG | termBG << 4, termColumn, termRow);
+            textmode_term_set_cursor_pos(termRow, termColumn);
+        } 
         return;
     }
 
     if (c == '\n') {
         termColumn = 0;
         termRow++;
+        if(!supportsVBEFramebuffer) textmode_term_set_cursor_pos(termRow, termColumn);
     } else {
-        psf_putchar(termColumn * font->width, termRow * font->height, (unsigned char)c, termFG, termBG);
+        if(supportsVBEFramebuffer) {
+            psf_putchar(termColumn * font->width, termRow * font->height, (unsigned char)c, termFG, termBG);
+        } else {
+            textmode_term_put_entry_at(c, termFG | termBG << 4, termColumn, termRow);
+            textmode_term_set_cursor_pos(termRow, termColumn+1);
+        }
+
         if (++termColumn >= termWidth) {
             termColumn = 0;
             termRow++;
@@ -148,11 +200,19 @@ void term_put_char(char c) {
     }
 
     if (termRow >= termHeight) {
-        term_scroll();
+        if(supportsVBEFramebuffer) {
+            term_scroll();
+        } else {
+            textmode_term_scroll();
+        }
         termRow = termHeight - 1;
     }
 
-    term_draw_cursor();
+    if(supportsVBEFramebuffer) {
+        term_draw_cursor();
+    } else {
+        textmode_term_set_cursor_pos(termRow, termColumn+1);
+    }
 }
 
 void term_write(const char* data, size_t size) {

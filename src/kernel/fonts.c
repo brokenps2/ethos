@@ -23,10 +23,8 @@ void psf_init() {
         return;
     }
 
-    unsigned char *s = (unsigned char*)&_binary_src_terminus_psf_start
-                       + font->headerSize
-                       + font->glyphCount * font->bytesPerGlyph;
-    unsigned char *end = (unsigned char*)&_binary_src_terminus_psf_end;
+    unsigned char* s = (unsigned char*)&_binary_src_terminus_psf_start + font->headerSize + font->glyphCount * font->bytesPerGlyph;
+    unsigned char* end = (unsigned char*)&_binary_src_terminus_psf_end;
 
     unicode = kmalloc(sizeof(uint16_t) * 65536);
     memset(unicode, 0, sizeof(uint16_t) * 65536);

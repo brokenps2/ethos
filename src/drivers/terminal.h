@@ -2,14 +2,6 @@
 #include "vga.h"
 #pragma once
 
-typedef void (*CommandFunc)(int argc, char** argv);
-
-typedef struct {
-    const char* name;
-    const char* help;
-    CommandFunc func;
-} Command;
-
 void term_create(size_t width, size_t height, uint32_t fg, uint32_t bg);
 size_t strlen(const char* str);
 void term_set_color(uint32_t fg, uint32_t bg);

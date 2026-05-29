@@ -1,19 +1,24 @@
 #include "arch/i386/ports.h"
 #include "keyboard.h"
-#include "drivers/terminal.h"
-#include "kernel/commandline.h"
 #include <stdbool.h>
 
 char keybuf[KEYBUF_SIZE];
 int head = 0, tail = 0;
 
 bool uppercase = false;
+bool extended = false;
 
 void keyboard_handler() {
     unsigned char scancode = inb(0x60);
 
+    if (scancode == 0xE0) {
+        extended = true;
+        end_of_int();
+        return;
+    }
+
     int next = (head + 1) % KEYBUF_SIZE;
-    if (next != tail) {
+    if(next != tail) {
         keybuf[head] = scancode;
         head = next;
     }

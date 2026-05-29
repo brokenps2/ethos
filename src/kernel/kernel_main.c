@@ -1,13 +1,15 @@
 #include "arch/i386/gdt.h"
 #include "arch/i386/idt.h"
 #include "drivers/terminal.h"
+#include "drivers/vga.h"
 #include "kernel/multiboot.h"
 #include "kernel/fonts.h"
 #include "kernel/commandline.h"
-#include "stdio.h"
 #include <stdint.h>
+#include <stdbool.h>
 
 multiboot_info_t* mbi;
+bool supportsVBEFramebuffer = false;
 
 int kernel_main(uint32_t magic, uint32_t* mbi_addr) {
 
@@ -17,17 +19,21 @@ int kernel_main(uint32_t magic, uint32_t* mbi_addr) {
 
 	mbi = (multiboot_info_t*)mbi_addr;
 
-	term_create(mbi->framebuffer_width, mbi->framebuffer_height, 0x00FFFFFF, 0x00090815);
-	psf_init();
+	supportsVBEFramebuffer = ((mbi->flags & (1 << 12)) && mbi->framebuffer_type == 1) ? true : false;
+
+
+	if(supportsVBEFramebuffer) {
+		term_create(mbi->framebuffer_width, mbi->framebuffer_height, 0x00FFFFFF, 0x00000000);
+		psf_init();
+	} else {
+		term_create(80, 25, VGA_COLOR_LIGHT_GRAY, VGA_COLOR_BLACK);
+	}
 
 	gdt_init();
 	idt_init();
 
-	//pit_wait(30);
-	
 	asm volatile("sti");
 
-	printf("\nethos kernel console -- build date %s\n\n", __DATE__);
 	print_prompt();
 
 
