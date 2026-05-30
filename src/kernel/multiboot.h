@@ -40,3 +40,19 @@ typedef struct {
     uint8_t  framebuffer_type;
     uint16_t reserved;
 } multiboot_info_t;
+
+typedef struct {
+    uint32_t type;
+    uint32_t size;
+} mb2_tag;
+
+typedef struct {
+    uint32_t type;
+    uint32_t size;
+    uint64_t fb_addr;
+    uint32_t fb_pitch;
+    uint32_t fb_width;
+    uint32_t fb_height;
+    uint8_t fb_bpp;
+    uint8_t fb_type;
+} mb2_tag_framebuffer;
