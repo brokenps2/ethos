@@ -9,22 +9,23 @@ uint16_t vga_entry(unsigned char uc, uint8_t color) {
 	return (uint16_t)uc | (uint16_t)color << 8;
 }
 
-extern mb2_tag_framebuffer* fb_tag;
+
+extern multiboot_info_t* mbi;
 
 uint32_t fb_get_address() {
-	uint32_t fb = (uint32_t)fb_tag->fb_addr;
+	uint32_t fb = (uint32_t)mbi->framebuffer_addr;
 
 	return fb;
 }
 
 void fb_put_pixel(int x, int y, uint32_t color) {
-    uint8_t* fb = (uint8_t*)(uintptr_t)fb_tag->fb_addr;
+    uint8_t* fb = (uint8_t*)(uintptr_t)mbi->framebuffer_addr;
 
-    uint32_t bpp = fb_tag->fb_bpp;
+    uint32_t bpp = mbi->framebuffer_bpp;
     uint32_t bytespp = bpp / 8;
 
     uint8_t* pixel = fb
-        + y * fb_tag->fb_pitch
+        + y * mbi->framebuffer_pitch
         + x * bytespp;
 
     switch (bpp) {
@@ -51,10 +52,10 @@ void fb_put_pixel(int x, int y, uint32_t color) {
 }
 
 void fb_clear(uint32_t color) {
-    volatile uint32_t *fb = (volatile uint32_t*)(uintptr_t)fb_tag->fb_addr;
-    uint32_t pixels_per_row = fb_tag->fb_pitch / (fb_tag->fb_bpp / 8);
-    for (uint32_t y = 0; y < fb_tag->fb_height; y++) {
-	for (uint32_t x = 0; x < fb_tag->fb_width; x++) {
+    volatile uint32_t *fb = (volatile uint32_t*)(uintptr_t)mbi->framebuffer_addr;
+    uint32_t pixels_per_row = mbi->framebuffer_pitch / (mbi->framebuffer_bpp / 8);
+    for (uint32_t y = 0; y < mbi->framebuffer_height; y++) {
+	for (uint32_t x = 0; x < mbi->framebuffer_width; x++) {
 	    fb[y * pixels_per_row + x] = color;
 	}
     }

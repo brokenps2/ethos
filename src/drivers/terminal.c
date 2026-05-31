@@ -15,7 +15,7 @@ size_t termColumn;
 uint32_t termFG;
 uint32_t termBG;
 
-uint16_t* vgaBuffer = (uint16_t*)0x0B0000;
+uint16_t* vgaBuffer = (uint16_t*)0xB8000;
 
 bool cursor_visible = false;
 
@@ -73,14 +73,14 @@ void textmode_term_put_entry_at(char c, uint8_t color, size_t x, size_t y) {
 extern uint8_t _binary_src_terminus_psf_start[];
 extern uint8_t _binary_src_terminus_psf_end[];
 
+extern multiboot_info_t* mbi;
+
 extern PSFFont *font;
 
 extern bool supportsVBEFramebuffer;
 
-extern mb2_tag_framebuffer* fb_tag;
-
 void term_create(size_t width, size_t height, uint32_t fg, uint32_t bg) {
-
+    
     if(supportsVBEFramebuffer) {
         font = (PSFFont*)&_binary_src_terminus_psf_start;
         termWidth  = width  / font->width;   // convert px to char cells
@@ -142,10 +142,10 @@ void term_put_entry_at(char c, uint8_t color, size_t x, size_t y) {
 void term_scroll() {
     uint32_t char_h = font->height;
     uint32_t char_w = font->width;
-    uint32_t pitch  = fb_tag->fb_pitch;
-    uint32_t bpp    = fb_tag->fb_bpp / 8;
+    uint32_t pitch  = mbi->framebuffer_pitch;
+    uint32_t bpp    = mbi->framebuffer_bpp / 8;
 
-    volatile uint8_t *fb = (volatile uint8_t*)(uintptr_t)fb_tag->fb_addr;
+    volatile uint8_t *fb = (volatile uint8_t*)(uintptr_t)mbi->framebuffer_addr;
 
     size_t row_bytes = pitch * char_h;
     size_t total = row_bytes * (termHeight - 1);
