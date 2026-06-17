@@ -1,4 +1,6 @@
 #include <stdint.h>
+#include "stdio.h"
+#include "drivers/fat32/fat32.h"
 
 void sleep_busy(uint32_t ticks) {
 	for(uint32_t i = 0; i < ticks; i++) {
@@ -45,4 +47,21 @@ char* itoa(int num, char* str, int base) {
     str[i] = '\0';
     reverse(str, i);
     return str;
+}
+
+void load_and_run_binary(FAT32* fs, const char* filename) {
+	FAT32File file;
+
+	if(!fat32_open(fs, &file, filename)) {
+		printf("failed to open program file\n");
+		return;
+	}
+
+	uint8_t* address = (uint8_t*)0x500000;
+
+	fat32_read(fs, &file, address, file.size);
+
+	void (*program_entry)() = (void(*)())address;
+
+	program_entry();
 }

@@ -10,6 +10,7 @@
 #include "drivers/keyboard.h"
 #include "commandline.h"
 #include "arch/i386/ports.h"
+#include "kernel/utils.h"
 
 extern size_t termColumn;
 
@@ -20,11 +21,6 @@ extern int head, tail;
 extern bool extended;
 char line[128];
 int len = 0;
-
-char history[128][2] = {
-    "", ""
-};
-int historyIdx = 0;
 
 FAT32 fs;
 
@@ -78,11 +74,12 @@ void do_rm(int argc, char** argv) {
 }
 
 void do_run(int argc, char** argv) {
-
     if(argc < 2) {
         printf("usage: run <filename>\n");
         return;
     }
+
+	load_and_run_binary(&fs, argv[1]);
     
 }
 
@@ -128,6 +125,7 @@ Command cmdTable[] = {
     {"crash", do_crash},
     {"pciscan", do_pciscan},
     {"reboot", do_reboot},
+	{"run", do_run},
 
     {NULL, NULL}
 };
@@ -142,10 +140,6 @@ void do_help(int argc, char** argv) {
 void handle_command(char* input) {
     char* argv[16];
     int argc = 0;
-
-    strcpy(history[0], history[1]);
-    strcpy(history[1], input);
-
 
     char* token = strtok(input, " ");
     while (token != NULL && argc < 16) {
@@ -171,16 +165,6 @@ void scan_kernel_cmdline() {
     while (tail != head) {
         unsigned char scancode = keybuf[tail];
         tail = (tail + 1) % KEYBUF_SIZE;
-
-        if(extended) {
-            if(extended) {
-               if(scancode == 0x48) {
-                    strcpy(line, history[1]);
-                }
-                extended = false;
-                return;
-            }
-        }
 
         if (!(scancode & 0x80)) {
             char c = keymapUS[scancode];
