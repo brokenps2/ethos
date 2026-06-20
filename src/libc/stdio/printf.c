@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 #include "stdio.h"
 
 static bool print(const char* data, size_t length) {
@@ -50,13 +51,12 @@ static bool print_hex(unsigned int value) {
     int i = 0;
 
     if (value == 0) {
-        char c = '0';
-        return print(&c, 1);
-    }
-
-    while (value > 0) {
-        buf[i++] = hex_chars[value % 16];
-        value /= 16;
+        buf[i++] = '0';
+    } else {
+        while (value > 0) {
+            buf[i++] = hex_chars[value % 16];
+            value /= 16;
+        }
     }
 
     for (int j = 0; j < i / 2; j++) {
@@ -66,6 +66,31 @@ static bool print_hex(unsigned int value) {
     }
 
     return print(buf, i);
+}
+
+
+static void print_double(double val, int places) {
+	if (val < 0) {
+		char minus = '-';
+		print(&minus, 1);
+        val = -val;
+    }
+
+    uint64_t int_part = (uint64_t)val;
+	print_int(int_part);
+    
+	char dot = '.';
+	print(&dot, 1);
+
+    double frac_part = val - (double)int_part;
+    for (int i = 0; i < places; ++i) {
+        frac_part *= 10;
+        int digit = (int)frac_part;
+        char n = (char)('0' + digit);
+		print(&n, 1);
+		
+        frac_part -= digit;
+    }
 }
 
 int printf(const char* restrict format, ...) {
@@ -122,13 +147,17 @@ int printf(const char* restrict format, ...) {
             int val = va_arg(parameters, int);
             if (!print_int(val))
                 return -1;
-        } else if(*format == 'x') { //doesnt work
-            format++;
+        } else if(*format == 'x') { 
+ 			format++;
             //print("0x", 2);
             int val = va_arg(parameters, int);
             if(!print_hex(val))
                 return -1;
-        } else {
+        } else if(*format == 'f') {
+			format++;
+			double val = va_arg(parameters, double);
+			print_double(val, 8);
+		} else {
             format = format_begun_at;
             size_t len = strlen(format);
             if (maxrem < len) {

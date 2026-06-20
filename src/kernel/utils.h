@@ -7,4 +7,4 @@
 
 void sleep_busy(uint32_t ticks);
 char* itoa(int num, char* str, int base);
-void load_and_run_binary(FAT32* fs, const char* filename);
+void load_and_run_binary(fat32_fs_t* fs, const char* filename);

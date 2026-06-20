@@ -1,18 +1,18 @@
 #pragma once
 #include <stdint.h>
 
-typedef struct idtEntry_t {
-	uint16_t isrLow;
-	uint16_t kernelCS;
+typedef struct {
+	uint16_t isr_low;
+	uint16_t selector;
 	uint8_t reserved;
 	uint8_t attribs;
-	uint16_t isrHigh;
-} __attribute__((packed)) idtEntry_t;
+	uint16_t isr_high;
+} __attribute__((packed)) idt_entry_t;
 
-typedef struct idtPtr {
+typedef struct {
 	uint16_t limit;
 	uint32_t base;
-} __attribute__((packed)) idtPtr;
+} __attribute__((packed)) idt_pointer_t;
 
 void idt_set_entry(int i, void* isr, uint8_t flags);
 void idt_init();

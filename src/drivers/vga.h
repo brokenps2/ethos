@@ -9,15 +9,15 @@
 typedef struct {
 	uint32_t magic;
 	uint32_t version;
-	uint32_t headerSize;
+	uint32_t header_size;
 	uint32_t flags;
-	uint32_t glyphCount;
-	uint32_t bytesPerGlyph;
+	uint32_t glyph_count;
+	uint32_t bytes_per_glyph;
 	uint32_t height;
 	uint32_t width;
-} PSFFont;
+} psf_font_t;
 
-typedef enum VGAColor {
+typedef enum vga_color {
 	VGA_COLOR_BLACK = 0,
 	VGA_COLOR_BLUE = 1,
 	VGA_COLOR_GREEN = 2,
@@ -34,10 +34,10 @@ typedef enum VGAColor {
 	VGA_COLOR_LIGHT_MAGENTA = 13,
 	VGA_COLOR_LIGHT_BROWN = 14,
 	VGA_COLOR_WHITE = 15,
-} VGAColor;
+} vga_color;
 
 
-uint8_t vga_entry_color(VGAColor fg, VGAColor bg);
+uint8_t vga_entry_color(vga_color fg, vga_color bg);
 uint16_t vga_entry(unsigned char uc, uint8_t color);
 uint32_t fb_get_address();
 void fb_put_pixel(int x, int y, uint32_t color);

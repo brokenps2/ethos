@@ -1,5 +1,5 @@
 #include <stddef.h>
-#include "vga.h"
+#include <stdint.h>
 #pragma once
 
 void term_create(size_t width, size_t height, uint32_t fg, uint32_t bg);

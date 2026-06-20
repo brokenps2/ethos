@@ -6,12 +6,12 @@
 extern uint8_t _binary_src_terminus_psf_start[];
 extern uint8_t _binary_src_terminus_psf_end[];
 
-PSFFont *font;
+psf_font_t *font;
 
 uint16_t *unicode;
 
 void psf_init() {
-    font = (PSFFont*)&_binary_src_terminus_psf_start;
+    font = (psf_font_t*)&_binary_src_terminus_psf_start;
 
     if (font->magic != PSF_FONT_MAGIC) {
         unicode = NULL;
@@ -23,7 +23,7 @@ void psf_init() {
         return;
     }
 
-    unsigned char* s = (unsigned char*)&_binary_src_terminus_psf_start + font->headerSize + font->glyphCount * font->bytesPerGlyph;
+    unsigned char* s = (unsigned char*)&_binary_src_terminus_psf_start + font->header_size + font->glyph_count * font->bytes_per_glyph;
     unsigned char* end = (unsigned char*)&_binary_src_terminus_psf_end;
 
     unicode = kmalloc(sizeof(uint16_t) * 65536);
@@ -64,8 +64,8 @@ void psf_putchar(int x, int y, uint32_t codepoint, uint32_t fg, uint32_t bg) {
     uint16_t glyph_index = unicode ? unicode[codepoint] : codepoint;
 
     unsigned char *glyph = (unsigned char*)&_binary_src_terminus_psf_start
-                           + font->headerSize
-                           + glyph_index * font->bytesPerGlyph;
+                           + font->header_size
+                           + glyph_index * font->bytes_per_glyph;
 
     int bytes_per_row = (font->width + 7) / 8;
 

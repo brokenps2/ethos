@@ -6,7 +6,7 @@
 #include "ports.h"
 #include "drivers/pit.h"
 
-void* irqRoutines[16] = {
+void* irq_routines[16] = {
 	0, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 0, 0, 0,
@@ -30,12 +30,12 @@ extern void irq13();
 extern void irq14();
 extern void irq15();
 
-void irq_set_handler(uint8_t irq, void (*handler)(CPUState state)) {
-	irqRoutines[irq] = handler;
+void irq_set_handler(uint8_t irq, void (*handler)(cpu_state_t state)) {
+	irq_routines[irq] = handler;
 }
 
 void irq_uninstall_handler(uint8_t irq) {
-	irqRoutines[irq] = 0;
+	irq_routines[irq] = 0;
 }
 
 void irq_remap() {
@@ -83,15 +83,15 @@ void irq_install() {
 	irq_set_handler(1, keyboard_handler);
 }
 
-void irq_handler(CPUState* state) {
-	void (*handler)(CPUState* state);
+void irq_handler(cpu_state_t* state) {
+	void (*handler)(cpu_state_t* state);
 
-	handler = irqRoutines[state->intNo - 32];
+	handler = irq_routines[state->int_no - 32];
 	if(handler) {
 		handler(state);
 	}
 
-	if(state->intNo >= 40) {
+	if(state->int_no >= 40) {
 		outb(0xA0, 0x20);
 	}
 

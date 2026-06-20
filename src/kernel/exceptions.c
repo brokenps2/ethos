@@ -4,7 +4,7 @@
 #include "stdio.h"
 #include <stdbool.h>
 
-const char* exceptionMessages[] = {
+const char* exception_msgs[] = {
     "EX0: Division by 0 Exception",
     "EX1: Debug Exception",
     "EX2: Non Maskable Interrupt Exception",
@@ -27,16 +27,16 @@ const char* exceptionMessages[] = {
     "EX19-31: Reserved Exception"
 };
 
-extern bool supportsVBEFramebuffer;
+extern bool supports_vbe;
 
-void exception_handler(CPUState* state) {
+void exception_handler(cpu_state_t* state) {
     term_write_string("\n\n");
-    if(supportsVBEFramebuffer) {
+    if(supports_vbe) {
         term_set_color(0x00EE0000, 0x00000000);
     } else {
         term_set_color(VGA_COLOR_RED, VGA_COLOR_BLACK);
     }
-    printf("%s, Error Code: %d\n", exceptionMessages[state->intNo], state->errCode);
+    printf("%s, Error Code: %d\n", exception_msgs[state->int_no], state->error_code);
     printf("EAX: %x  EBX: %x  ECX: %x  EDX: %x\n", state->eax, state->ebx, state->ecx, state->edx);
     printf("EIP: %x  CS:  %x  EFLAGS: %x\n", state->eip, state->cs, state->eflags);
     asm volatile("hlt");

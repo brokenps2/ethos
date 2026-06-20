@@ -4,12 +4,12 @@
 #include "drivers/vga.h"
 #include "kernel/multiboot.h"
 #include "kernel/fonts.h"
-#include "kernel/commandline.h"
+#include "kernel/cmdline.h"
 #include <stdint.h>
 #include <stdbool.h>
 
 multiboot_info_t* mbi;
-bool supportsVBEFramebuffer = false;
+bool supports_vbe = false;
 
 int kernel_main(uint32_t magic, uint32_t* mbi_addr) {
 
@@ -19,10 +19,10 @@ int kernel_main(uint32_t magic, uint32_t* mbi_addr) {
 
 	mbi = (multiboot_info_t*)mbi_addr;
 
-	supportsVBEFramebuffer = ((mbi->flags & (1 << 12)) && mbi->framebuffer_type == 1) ? true : false;
+	supports_vbe = ((mbi->flags & (1 << 12)) && mbi->framebuffer_type == 1) ? true : false;
 
 
-	if(supportsVBEFramebuffer) {
+	if(supports_vbe) {
 		term_create(mbi->framebuffer_width, mbi->framebuffer_height, 0x00FFFFFF, 0x00000000);
 		psf_init();
 	} else {

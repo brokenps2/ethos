@@ -8,11 +8,12 @@
 #include "drivers/terminal.h"
 #include "drivers/fat32/fat32.h"
 #include "drivers/keyboard.h"
-#include "commandline.h"
+#include "cmdline.h"
 #include "arch/i386/ports.h"
 #include "kernel/utils.h"
 
-extern size_t termColumn;
+extern size_t term_column;
+extern size_t term_width;
 
 uint8_t min_col = 0;
 
@@ -22,11 +23,11 @@ extern bool extended;
 char line[128];
 int len = 0;
 
-FAT32 fs;
+fat32_fs_t fs;
 
 void print_prompt() {
     printf("> ");
-    min_col = termColumn;
+    min_col = term_column;
 }
 
 void do_help(int argc, char** argv);
@@ -45,7 +46,7 @@ void do_cat(int argc, char** argv) {
         return;
     }
 
-    FAT32File file;
+    fat32_file_t file;
     fat32_open(&fs, &file, argv[1]);
 
     uint8_t* buffer;
@@ -83,6 +84,32 @@ void do_run(int argc, char** argv) {
     
 }
 
+void do_hexdump(int argc, char** argv) {
+    if (argc < 2) {
+        printf("usage: hexdump <filename>\n");
+        return;
+    }
+
+    fat32_file_t file;
+    fat32_open(&fs, &file, argv[1]);
+
+    uint8_t* buffer = (uint8_t*)kmalloc(file.size);
+
+    if (fat32_read(&fs, &file, buffer, file.size)) {
+        for (int i = 0; i < file.size; i++) {
+            if (buffer[i] < 16) {
+                printf("0");
+            }
+			if(term_column >= term_width - 3) {
+            	printf("%x\n", buffer[i]);
+			} else {
+            	printf("%x ", buffer[i]);
+			}
+        }
+    }
+    printf("\n");
+}
+
 void do_reboot() {
     while (1) {
         uint8_t status;
@@ -113,10 +140,11 @@ void do_pciscan(int argc, char** argv) {
     pci_scan();
 }
 
-Command cmdTable[] = {
+command_t cmdTable[] = {
     {"help", do_help},
     {"cls", term_clear},
     {"cat", do_cat},
+	{"hexdump", do_hexdump},
     {"cd", do_cd},
     {"write", do_write},
     {"rm", do_rm},
@@ -126,8 +154,8 @@ Command cmdTable[] = {
     {"pciscan", do_pciscan},
     {"reboot", do_reboot},
 	{"run", do_run},
-
-    {NULL, NULL}
+    
+	{NULL, NULL}
 };
 
 void do_help(int argc, char** argv) {
@@ -167,7 +195,7 @@ void scan_kernel_cmdline() {
         tail = (tail + 1) % KEYBUF_SIZE;
 
         if (!(scancode & 0x80)) {
-            char c = keymapUS[scancode];
+            char c = keymap_us[scancode];
             if (c == '\n') {
                 line[len] = 0;
                 len = 0;
