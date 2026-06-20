@@ -3,7 +3,7 @@
 #include "string.h"
 #include "stdio.h"
 
-int fat32_open(fat32_fs_t* fs, fat32_file_t *file, const char *path) {
+int fat32_open(Fat32Context* fs, Fat32File *file, const char *path) {
     if(!fs->ready) {
         printf("FAT32: not ready\n");
         return 0;
@@ -13,7 +13,7 @@ int fat32_open(fat32_fs_t* fs, fat32_file_t *file, const char *path) {
     char fat_name[11];
     to_fat_name(path, fat_name);
 
-    fat32_dir_entry_t entry;
+    Fat32DirEntry entry;
     if(!find_in_dir(fs, fs->current_dir_cluster, fat_name, &entry)) {
         printf("FAT32: file not found\n");
         return 0;
@@ -26,7 +26,7 @@ int fat32_open(fat32_fs_t* fs, fat32_file_t *file, const char *path) {
     return 1;
 }
 
-int fat32_read(fat32_fs_t* fs, fat32_file_t *file, uint8_t *buf, uint32_t size) {
+int fat32_read(Fat32Context* fs, Fat32File *file, uint8_t *buf, uint32_t size) {
     if(!fs->ready) return 0;
 
     if(file->position >= file->size) return 0;
@@ -66,7 +66,7 @@ int fat32_read(fat32_fs_t* fs, fat32_file_t *file, uint8_t *buf, uint32_t size) 
     return bytes_read;
 }
 
-int fat32_write_file(fat32_fs_t* fs, const char* path, uint8_t* buf, uint32_t size) {
+int fat32_write_file(Fat32Context* fs, const char* path, uint8_t* buf, uint32_t size) {
     if(!fs->ready) {
         printf("FAT32: not ready\n");
         return 0;
@@ -75,7 +75,7 @@ int fat32_write_file(fat32_fs_t* fs, const char* path, uint8_t* buf, uint32_t si
     char fat_name[11];
     to_fat_name(path, fat_name);
 
-    fat32_dir_entry_t entry;
+    Fat32DirEntry entry;
     int exists = find_in_dir(fs, fs->current_dir_cluster, fat_name, &entry);
 
     if(exists) {
@@ -123,7 +123,7 @@ int fat32_write_file(fat32_fs_t* fs, const char* path, uint8_t* buf, uint32_t si
     return 1;
 }
 
-int fat32_delete_file(fat32_fs_t* fs, const char* path) {
+int fat32_delete_file(Fat32Context* fs, const char* path) {
     if(!fs->ready) {
         printf("FAT32: not ready\n");
         return 0;

@@ -29,7 +29,7 @@ const char* exception_msgs[] = {
 
 extern bool supports_vbe;
 
-void exception_handler(cpu_state_t* state) {
+void exception_handler(CpuState* state) {
     term_write_string("\n\n");
     if(supports_vbe) {
         term_set_color(0x00EE0000, 0x00000000);

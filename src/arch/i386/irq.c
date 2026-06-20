@@ -30,7 +30,7 @@ extern void irq13();
 extern void irq14();
 extern void irq15();
 
-void irq_set_handler(uint8_t irq, void (*handler)(cpu_state_t state)) {
+void irq_set_handler(uint8_t irq, void (*handler)(CpuState state)) {
 	irq_routines[irq] = handler;
 }
 
@@ -83,8 +83,8 @@ void irq_install() {
 	irq_set_handler(1, keyboard_handler);
 }
 
-void irq_handler(cpu_state_t* state) {
-	void (*handler)(cpu_state_t* state);
+void irq_handler(CpuState* state) {
+	void (*handler)(CpuState* state);
 
 	handler = irq_routines[state->int_no - 32];
 	if(handler) {

@@ -49,8 +49,8 @@ char* itoa(int num, char* str, int base) {
     return str;
 }
 
-void load_and_run_binary(fat32_fs_t* fs, const char* filename) {
-	fat32_file_t file;
+void load_and_run_binary(Fat32Context* fs, const char* filename) {
+	Fat32File file;
 
 	if(!fat32_open(fs, &file, filename)) {
 		printf("failed to open program file\n");

@@ -3,8 +3,8 @@
 
 #define GDT_ENTRIES 3
 
-gdt_entry_t gdt[GDT_ENTRIES];
-gdt_pointer_t gdtp;
+GdtEntry gdt[GDT_ENTRIES];
+GdtPointer gdtp;
 
 void gdt_set_entry(int i, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
 	gdt[i].base_low = base & 0xFFFF;
@@ -19,7 +19,7 @@ void gdt_set_entry(int i, uint32_t base, uint32_t limit, uint8_t access, uint8_t
 }
 
 void gdt_init() {
-	gdtp.limit = (sizeof(gdt_entry_t) * GDT_ENTRIES) - 1;
+	gdtp.limit = (sizeof(GdtEntry) * GDT_ENTRIES) - 1;
 	gdtp.base = (uint32_t)&gdt;
 
 	gdt_set_entry(0, 0, 0, 0, 0);

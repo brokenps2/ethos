@@ -6,12 +6,12 @@
 extern uint8_t _binary_src_terminus_psf_start[];
 extern uint8_t _binary_src_terminus_psf_end[];
 
-psf_font_t *font;
+PsfFont *font;
 
 uint16_t *unicode;
 
 void psf_init() {
-    font = (psf_font_t*)&_binary_src_terminus_psf_start;
+    font = (PsfFont*)&_binary_src_terminus_psf_start;
 
     if (font->magic != PSF_FONT_MAGIC) {
         unicode = NULL;

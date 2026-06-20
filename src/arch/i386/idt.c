@@ -39,14 +39,14 @@ extern void isr31();
 
 #define IDT_MAX_DESCRIPTORS 256
 
-__attribute__((aligned(0x10))) static idt_entry_t idt[IDT_MAX_DESCRIPTORS];
+__attribute__((aligned(0x10))) static IdtEntry idt[IDT_MAX_DESCRIPTORS];
 
-idt_pointer_t idtp;
+IdtPointer idtp;
 
 extern void* isrStubTable[];
 
 void idt_set_entry(int i, void* isr, uint8_t flags) {
-	idt_entry_t* descriptor = &idt[i];
+	IdtEntry* descriptor = &idt[i];
 
 	descriptor->isr_low = (uint32_t)isr & 0xFFFF;
 	descriptor->selector = 0x08;
@@ -94,7 +94,7 @@ extern void idt_flush();
 
 void idt_init() {
 	idtp.base = (uintptr_t)&idt[0];
-	idtp.limit = (uint16_t)sizeof(idt_entry_t) * IDT_MAX_DESCRIPTORS - 1;
+	idtp.limit = (uint16_t)sizeof(IdtEntry) * IDT_MAX_DESCRIPTORS - 1;
 
 	install_exceptions();
 

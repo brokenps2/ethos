@@ -4,7 +4,7 @@
 #include "stdio.h"
 #include "kernel/utils.h"
 
-int find_in_dir(fat32_fs_t* fs, uint32_t dir_cluster, const char* fat_name, fat32_dir_entry_t* out) {
+int find_in_dir(Fat32Context* fs, uint32_t dir_cluster, const char* fat_name, Fat32DirEntry* out) {
     uint8_t buf[512];
     FOR_EACH_DIR_ENTRY(fs, dir_cluster, buf)
         if (entries[i].name[0] == 0x00) return 0;
@@ -22,7 +22,7 @@ int find_in_dir(fat32_fs_t* fs, uint32_t dir_cluster, const char* fat_name, fat3
 //TODO: make this function sprintf() into and return a const char* rather than directly
 //interfacing with the terminal
 
-void fat32_list_current_dir_cluster(fat32_fs_t* fs) {
+void fat32_list_current_dir_cluster(Fat32Context* fs) {
 
     if(!fs->ready) {
         printf("FAT32: not ready\n");
@@ -63,7 +63,7 @@ void fat32_list_current_dir_cluster(fat32_fs_t* fs) {
     END_DIR_ENTRY_LOOP(fs)
 }
 
-int fat32_change_dir(fat32_fs_t* fs, const char* path) {
+int fat32_change_dir(Fat32Context* fs, const char* path) {
     if(!fs->ready) {
         printf("FAT32: not ready\n");
         return 1;
@@ -73,7 +73,7 @@ int fat32_change_dir(fat32_fs_t* fs, const char* path) {
 
     to_fat_name(path, fat_name);
 
-	fat32_dir_entry_t entry;
+	Fat32DirEntry entry;
     if (find_in_dir(fs, fs->current_dir_cluster, fat_name, &entry)) {
         if (entry.attributes & FAT32_ATTR_DIRECTORY) {
             fs->current_dir_cluster = ((uint32_t)entry.cluster_high << 16)
@@ -90,7 +90,7 @@ int fat32_change_dir(fat32_fs_t* fs, const char* path) {
     return 0;
 }
 
-int fat32_create_dir_entry(fat32_fs_t* fs, uint32_t dir_cluster, fat32_dir_entry_t* entry) {
+int fat32_create_dir_entry(Fat32Context* fs, uint32_t dir_cluster, Fat32DirEntry* entry) {
     uint8_t buf[512];
 
     FOR_EACH_DIR_ENTRY(fs, dir_cluster, buf)
@@ -133,7 +133,7 @@ int fat32_create_dir_entry(fat32_fs_t* fs, uint32_t dir_cluster, fat32_dir_entry
 
     uint8_t empty[512];
     memcpy(empty, 0, 512);
-    fat32_dir_entry_t* entries = (fat32_dir_entry_t*)empty;
+    Fat32DirEntry* entries = (Fat32DirEntry*)empty;
     entries[0] = *entry;
     entries[1].name[0] = FAT32_ENTRY_END;
     ata_write_sector(cluster_to_lba(fs, new_cluster), empty);

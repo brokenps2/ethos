@@ -23,7 +23,7 @@ extern bool extended;
 char line[128];
 int len = 0;
 
-fat32_fs_t fs;
+Fat32Context fs;
 
 void print_prompt() {
     printf("> ");
@@ -46,7 +46,7 @@ void do_cat(int argc, char** argv) {
         return;
     }
 
-    fat32_file_t file;
+    Fat32File file;
     fat32_open(&fs, &file, argv[1]);
 
     uint8_t* buffer;
@@ -90,7 +90,7 @@ void do_hexdump(int argc, char** argv) {
         return;
     }
 
-    fat32_file_t file;
+    Fat32File file;
     fat32_open(&fs, &file, argv[1]);
 
     uint8_t* buffer = (uint8_t*)kmalloc(file.size);
@@ -140,7 +140,7 @@ void do_pciscan(int argc, char** argv) {
     pci_scan();
 }
 
-command_t cmdTable[] = {
+Command cmdTable[] = {
     {"help", do_help},
     {"cls", term_clear},
     {"cat", do_cat},

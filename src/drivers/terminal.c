@@ -75,14 +75,14 @@ extern uint8_t _binary_src_terminus_psf_end[];
 
 extern multiboot_info_t* mbi;
 
-extern psf_font_t *font;
+extern PsfFont* font;
 
 extern bool supports_vbe;
 
 void term_create(size_t width, size_t height, uint32_t fg, uint32_t bg) {
     
     if(supports_vbe) {
-        font = (psf_font_t*)&_binary_src_terminus_psf_start;
+        font = (PsfFont*)&_binary_src_terminus_psf_start;
         term_width  = width  / font->width;   // convert px to char cells
         term_height = height / font->height;
         term_fg = fg;

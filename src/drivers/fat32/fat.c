@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-int fat32_init(fat32_fs_t* fs) {
+int fat32_init(Fat32Context* fs) {
     uint8_t buf[512];
     ata_read_sector(0, buf);
 
@@ -20,7 +20,7 @@ int fat32_init(fat32_fs_t* fs) {
         ata_read_sector(bpb_sector, buf);
     }
 
-    memcpy(&fs->bpb, buf, sizeof(fat32_bpb_t));
+    memcpy(&fs->bpb, buf, sizeof(Fat32Bpb));
 
     fs->fat_start = bpb_sector + fs->bpb.reserved_sectors;
     fs->data_start = bpb_sector + fs->bpb.reserved_sectors + fs->bpb.fat_count * fs->bpb.fat_size_32;
@@ -38,11 +38,11 @@ int fat32_init(fat32_fs_t* fs) {
     return 1;
 }
 
-uint32_t cluster_to_lba(fat32_fs_t* fs, uint32_t cluster) {
+uint32_t cluster_to_lba(Fat32Context* fs, uint32_t cluster) {
     return fs->data_start + (cluster - 2) * fs->sectors_per_cluster;
 }
 
-uint32_t fat32_next_cluster(fat32_fs_t* fs, uint32_t cluster) {
+uint32_t fat32_next_cluster(Fat32Context* fs, uint32_t cluster) {
     uint32_t fat_offset = cluster * 4;
     uint32_t fat_sector = fs->fat_start + fat_offset / 512;
     uint32_t offset = fat_offset % 512;
@@ -88,7 +88,7 @@ void to_fat_name(const char* name, char* fat_name) {
 
 
 
-void fat32_write_entry(fat32_fs_t* fs, uint32_t cluster, uint32_t value) {
+void fat32_write_entry(Fat32Context* fs, uint32_t cluster, uint32_t value) {
     uint32_t fat_offset = cluster * 4;
     uint32_t fat_sector = fs->fat_start + fat_offset / 512;
     uint32_t offset = fat_offset % 512;
@@ -105,7 +105,7 @@ void fat32_write_entry(fat32_fs_t* fs, uint32_t cluster, uint32_t value) {
     }
 }
 
-uint32_t fat32_alloc_cluster(fat32_fs_t* fs) {
+uint32_t fat32_alloc_cluster(Fat32Context* fs) {
     uint8_t buf[512];
     uint32_t current_sector = 0xFFFFFFFF;
 
@@ -129,7 +129,7 @@ uint32_t fat32_alloc_cluster(fat32_fs_t* fs) {
     return 0;
 }
 
-void fat32_free_chain(fat32_fs_t* fs, uint32_t cluster) {
+void fat32_free_chain(Fat32Context* fs, uint32_t cluster) {
     while(cluster < FAT32_CLUSTER_END) {
         uint32_t next = fat32_next_cluster(fs, cluster);
         fat32_write_entry(fs, cluster, FAT32_FREE);
@@ -138,14 +138,14 @@ void fat32_free_chain(fat32_fs_t* fs, uint32_t cluster) {
 }
 
 
-void fat32_write_cluster(fat32_fs_t* fs, uint32_t cluster, uint8_t* buf) {
+void fat32_write_cluster(Fat32Context* fs, uint32_t cluster, uint8_t* buf) {
     uint32_t lba = cluster_to_lba(fs, cluster);
     for(uint32_t s = 0; s < fs->sectors_per_cluster; s++) {
         ata_write_sector(lba + s, buf + s * 512);
     }
 }
 
-int fat32_update_dir_entry(fat32_fs_t* fs, uint32_t dir_cluster, const char* fat_name, fat32_dir_entry_t* new_entry) {
+int fat32_update_dir_entry(Fat32Context* fs, uint32_t dir_cluster, const char* fat_name, Fat32DirEntry* new_entry) {
     uint8_t buf[512];
 
     FOR_EACH_DIR_ENTRY(fs, dir_cluster, buf)

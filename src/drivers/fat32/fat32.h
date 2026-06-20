@@ -19,7 +19,7 @@
         for(uint32_t s = 0; s < fs->sectors_per_cluster; s++)          \
         {                                                            \
             ata_read_sector(lba + s, buf);                        \
-            fat32_dir_entry_t* entries = (fat32_dir_entry_t*)buf;              \
+            Fat32DirEntry* entries = (Fat32DirEntry*)buf;              \
             for(int i = 0; i < 16; i++)                              \
             {
 
@@ -56,7 +56,7 @@ typedef struct {
     uint32_t volume_id;
     uint8_t volume_label[11];
     uint8_t fs_type[8];
-} __attribute__((packed)) fat32_bpb_t;
+} __attribute__((packed)) Fat32Bpb;
 
 typedef struct {
     uint8_t name[11];
@@ -71,39 +71,39 @@ typedef struct {
     uint16_t modify_date;
     uint16_t cluster_low;
     uint32_t file_size;
-} __attribute__((packed)) fat32_dir_entry_t;
+} __attribute__((packed)) Fat32DirEntry;
 
 typedef struct {
     uint32_t first_cluster;
     uint32_t size;
     uint32_t position;
-} fat32_file_t;
+} Fat32File;
 
 typedef struct {
-    fat32_bpb_t bpb;
+    Fat32Bpb bpb;
     uint32_t fat_start;
     uint32_t data_start;
     uint32_t sectors_per_cluster;
     uint32_t current_dir_cluster;
     bool ready;
-} fat32_fs_t;
+} Fat32Context;
 
 
-int fat32_init(fat32_fs_t* fs);
-uint32_t cluster_to_lba(fat32_fs_t* fs, uint32_t cluster);
-uint32_t fat32_next_cluster(fat32_fs_t* fs, uint32_t cluster);
+int fat32_init(Fat32Context* fs);
+uint32_t cluster_to_lba(Fat32Context* fs, uint32_t cluster);
+uint32_t fat32_next_cluster(Fat32Context* fs, uint32_t cluster);
 void to_fat_name(const char* name, char* fat_name);
-int find_in_dir(fat32_fs_t* fs, uint32_t cluster, const char* fat_name, fat32_dir_entry_t* out);
-void fat32_list_current_dir_cluster(fat32_fs_t* fs);
-int fat32_change_dir(fat32_fs_t* fs, const char* path);
-void fat32_write_entry(fat32_fs_t* fs, uint32_t cluster, uint32_t value);
-uint32_t fat32_alloc_cluster(fat32_fs_t* fs);
-void fat32_free_chain(fat32_fs_t* fs, uint32_t cluster);
-void fat32_write_cluster(fat32_fs_t* fs, uint32_t cluster, uint8_t* buf);
-int fat32_update_dir_entry(fat32_fs_t* fs, uint32_t dir_cluster, const char* fat_name, fat32_dir_entry_t* new_entry);
-int fat32_create_dir_entry(fat32_fs_t* fs, uint32_t dir_cluster, fat32_dir_entry_t* entry);
+int find_in_dir(Fat32Context* fs, uint32_t cluster, const char* fat_name, Fat32DirEntry* out);
+void fat32_list_current_dir_cluster(Fat32Context* fs);
+int fat32_change_dir(Fat32Context* fs, const char* path);
+void fat32_write_entry(Fat32Context* fs, uint32_t cluster, uint32_t value);
+uint32_t fat32_alloc_cluster(Fat32Context* fs);
+void fat32_free_chain(Fat32Context* fs, uint32_t cluster);
+void fat32_write_cluster(Fat32Context* fs, uint32_t cluster, uint8_t* buf);
+int fat32_update_dir_entry(Fat32Context* fs, uint32_t dir_cluster, const char* fat_name, Fat32DirEntry* new_entry);
+int fat32_create_dir_entry(Fat32Context* fs, uint32_t dir_cluster, Fat32DirEntry* entry);
 
-int fat32_open(fat32_fs_t* fs, fat32_file_t *file, const char *path);
-int fat32_read(fat32_fs_t* fs, fat32_file_t *file, uint8_t* buf, uint32_t size);
-int fat32_write_file(fat32_fs_t* fs, const char* path, uint8_t* buf, uint32_t size);
-int fat32_delete_file(fat32_fs_t* fs, const char* path);
+int fat32_open(Fat32Context* fs, Fat32File *file, const char *path);
+int fat32_read(Fat32Context* fs, Fat32File *file, uint8_t* buf, uint32_t size);
+int fat32_write_file(Fat32Context* fs, const char* path, uint8_t* buf, uint32_t size);
+int fat32_delete_file(Fat32Context* fs, const char* path);
