@@ -9,7 +9,7 @@ ASM_FILES := $(call rwildcard,$(SRC_DIR)/,*.s)
 ASM_OBJ := $(patsubst $(SRC_DIR)/%.s, $(OBJ_DIR)/%.o, $(ASM_FILES))
 C_OBJ := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(C_FILES))
 FONT_OBJ := $(OBJ_DIR)/font.o
-CFLAGS := -std=gnu99 -ggdb -ffreestanding -O2 -Wall -Wextra -Wno-unused -I./src -I./src/libc/include -march=pentium
+CFLAGS := -std=gnu99 -ggdb -ffreestanding -O2 -Wall -Wextra -Wno-unused-function -Wno-unused-header -Wno-unused-parameter -I./src -I./src/libc/include -march=pentium
 LDFLAGS := -ffreestanding -ggdb -O2 -nostdlib
 
 image: $(BIN_DIR)/$(TARGET)

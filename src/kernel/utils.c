@@ -20,6 +20,23 @@ void reverse(char str[], int length) {
     }
 }
 
+static uint64_t next_seed = 1;
+
+void srand(uint64_t seed) {
+    next_seed = seed;
+}
+
+uint32_t rand(void) {
+    uint64_t a = 25214903917;
+    uint64_t c = 11;
+    uint64_t m = 1ULL << 48;
+
+    next_seed = (a * next_seed + c) % m;
+
+    return (uint32_t)(next_seed >> 16);
+}
+
+
 char* itoa(int num, char* str, int base) {
     int i = 0;
     int isNegative = 0;

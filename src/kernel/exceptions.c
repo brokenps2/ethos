@@ -30,6 +30,7 @@ const char* exception_msgs[] = {
 extern bool supports_vbe;
 
 void exception_handler(CpuState* state) {
+
     term_write_string("\n\n");
     if(supports_vbe) {
         term_set_color(0x00EE0000, 0x00000000);
@@ -37,7 +38,7 @@ void exception_handler(CpuState* state) {
         term_set_color(VGA_COLOR_RED, VGA_COLOR_BLACK);
     }
     printf("%s, Error Code: %d\n", exception_msgs[state->int_no], state->error_code);
-    printf("EAX: %x  EBX: %x  ECX: %x  EDX: %x\n", state->eax, state->ebx, state->ecx, state->edx);
+    printf("EAX: %x  EBK: %x  ECX: %x  EDX: %x\n", state->eax, state->ebx, state->ecx, state->edx);
     printf("EIP: %x  CS:  %x  EFLAGS: %x\n", state->eip, state->cs, state->eflags);
     asm volatile("hlt");
 }

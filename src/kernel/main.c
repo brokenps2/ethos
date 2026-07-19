@@ -4,7 +4,9 @@
 #include "drivers/vga.h"
 #include "kernel/multiboot.h"
 #include "kernel/fonts.h"
+#include "kernel/utils.h"
 #include "kernel/cmdline.h"
+#include "kernel/vmm.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -21,6 +23,7 @@ int kernel_main(uint32_t magic, uint32_t* mbi_addr) {
 
 	supports_vbe = ((mbi->flags & (1 << 12)) && mbi->framebuffer_type == 1) ? true : false;
 
+	srand(100);
 
 	if(supports_vbe) {
 		term_create(mbi->framebuffer_width, mbi->framebuffer_height, 0x00FFFFFF, 0x00000000);
@@ -36,6 +39,7 @@ int kernel_main(uint32_t magic, uint32_t* mbi_addr) {
 
 	print_prompt();
 
+	vmm_init();
 
 	while (1) {
 		scan_kernel_cmdline();

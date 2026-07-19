@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include "arch/i386/ports.h"
 #include "kernel/multiboot.h"
+#include "kernel/utils.h"
 #include "string.h"
 #include <stddef.h>
 
@@ -133,10 +134,6 @@ void term_clear() {
 void term_set_color(uint32_t fg, uint32_t bg) {
     term_fg = fg;
     term_bg = bg;
-}
-
-void term_put_entry_at(char c, uint8_t color, size_t x, size_t y) {
-    psf_putchar(x, y, c, term_fg, term_bg);
 }
 
 void term_scroll() {

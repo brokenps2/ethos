@@ -2,6 +2,7 @@
 #include "drivers/vga.h"
 #include "string.h"
 #include "kernel/kernel.h"
+#include "kernel/utils.h"
 
 extern uint8_t _binary_src_terminus_psf_start[];
 extern uint8_t _binary_src_terminus_psf_end[];
@@ -75,6 +76,7 @@ void psf_putchar(int x, int y, uint32_t codepoint, uint32_t fg, uint32_t bg) {
             int bit  = 7 - (col % 8);
             uint32_t color = (glyph[row * bytes_per_row + byte] >> bit) & 1
                              ? fg : bg;
+
             fb_put_pixel(x + col, y + row, color);
         }
     }
