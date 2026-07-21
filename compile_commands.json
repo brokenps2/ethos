@@ -1,7 +1,7 @@
 [
   {
     "directory": "/home/eli/ethos",
-    "command": "/usr/bin/gcc -Wall -Wno-unused-function -Wno-unused-header -g -O2 -pthread -I./src -I./src/libc/include -c src/$(file).c -o obj/$(file).o",
+    "command": "/usr/bin/gcc -Wall -Wno-unused -Wno-pointer-to-int-cast -g -O2 -pthread -I./src -I./src/libc/include -c src/$(file).c -o obj/$(file).o",
     "file": "/home/eli/ethos/src/kernel/*.c",
     "file": "/home/eli/ethos/src/libc/*.c",
     "output": "/home/eli/ethos/obj/*.o"

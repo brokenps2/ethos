@@ -40,3 +40,10 @@ typedef struct {
     uint8_t  framebuffer_type;
     uint16_t reserved;
 } multiboot_info_t;
+
+typedef struct {
+	uint32_t size;
+	uint64_t base_addr;
+	uint64_t length;
+	uint32_t type;
+} __attribute__((packed)) multiboot_memory_map_entry_t;
