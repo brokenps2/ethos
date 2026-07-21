@@ -7,6 +7,7 @@
 #include "kernel/utils.h"
 #include "kernel/cmdline.h"
 #include "kernel/vmm.h"
+#include "kernel/pmm.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -20,6 +21,9 @@ int kernel_main(uint32_t magic, uint32_t* mbi_addr) {
 	}
 
 	mbi = (multiboot_info_t*)mbi_addr;
+
+	pmm_init();
+	vmm_init();
 
 	supports_vbe = ((mbi->flags & (1 << 12)) && mbi->framebuffer_type == 1) ? true : false;
 
@@ -38,8 +42,6 @@ int kernel_main(uint32_t magic, uint32_t* mbi_addr) {
 	asm volatile("sti");
 
 	print_prompt();
-
-	vmm_init();
 
 	while (1) {
 		scan_kernel_cmdline();

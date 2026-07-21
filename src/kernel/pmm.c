@@ -65,16 +65,16 @@ void pmm_init() {
 		multiboot_memory_map_entry_t* entry = (multiboot_memory_map_entry_t*)current;
 
 		if(entry->type == 1) {
-			uint32_t base_frame = entry->base_addr / 4096;
-			if(entry->base_addr % 4096 != 0) base_frame++;
-			uint32_t frame_count = entry->length / 4096;
-			if(entry->length % 4096 != 0) frame_count++;
+    		uint32_t base_frame = (entry->base_addr + 4095) / 4096;
+		    uint32_t end_frame = (entry->base_addr + entry->length) / 4096;
 
-			for(int i = 0; i < frame_count; i++) {
-				pmm_clear_bit(base_frame + i);
-			}
+		    if (end_frame > base_frame) {
+        		for(uint32_t f = base_frame; f < end_frame; f++) {
+		            pmm_clear_bit(f);
+        		}
+    		}
+			current += entry->size + sizeof(entry->size);
 		}
-		current += entry->size + sizeof(entry->size);
 	}
 
 

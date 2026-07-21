@@ -1,6 +1,7 @@
 #include "drivers/terminal.h"
 #include "drivers/vga.h"
 #include "kernel/kernel.h"
+#include "arch/i386/ports.h"
 #include "stdio.h"
 #include <stdbool.h>
 
@@ -30,9 +31,6 @@ const char* exception_msgs[] = {
 extern bool supports_vbe;
 
 void exception_handler(CpuState* state) {
-
-	//TODO: page fault handler
-
     term_write_string("\n\n");
     if(supports_vbe) {
         term_set_color(0x00EE0000, 0x00000000);
